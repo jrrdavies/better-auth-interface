@@ -3,3 +3,4 @@ node_modules/
 .next/
 dist/
 pnpm-lock.yaml
+src/components/ui/

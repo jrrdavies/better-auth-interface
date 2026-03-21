@@ -1,5 +1,6 @@
 module.exports = {
   root: true,
+  ignorePatterns: ["src/components/ui/**"],
   parser: "@typescript-eslint/parser",
   parserOptions: { project: "./tsconfig.json" },
   plugins: ["@typescript-eslint", "react", "react-hooks"],

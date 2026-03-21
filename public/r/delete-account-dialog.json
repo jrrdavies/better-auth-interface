@@ -9,6 +9,8 @@
     "@hookform/resolvers"
   ],
   "registryDependencies": [
+    "auth-provider",
+    "auth-utils",
     "button",
     "input",
     "label",

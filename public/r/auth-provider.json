@@ -4,7 +4,9 @@
   "title": "Auth Provider",
   "description": "React context wrapping the Better Auth client for all components.",
   "dependencies": [],
-  "registryDependencies": [],
+  "registryDependencies": [
+    "auth-types"
+  ],
   "files": [
     {
       "path": "registry/lib/auth-provider.tsx",

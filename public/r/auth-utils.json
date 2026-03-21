@@ -4,7 +4,9 @@
   "title": "Auth Utils",
   "description": "Shared utility functions for error handling and class merging.",
   "dependencies": [],
-  "registryDependencies": [],
+  "registryDependencies": [
+    "auth-types"
+  ],
   "files": [
     {
       "path": "registry/lib/utils.ts",

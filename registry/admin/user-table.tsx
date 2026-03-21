@@ -332,7 +332,22 @@ export function UserTable({
                   <TableHead
                     key={header.id}
                     className={header.column.getCanSort() ? "cursor-pointer select-none" : ""}
+                    tabIndex={header.column.getCanSort() ? 0 : undefined}
+                    role={header.column.getCanSort() ? "button" : undefined}
+                    aria-sort={
+                      header.column.getIsSorted() === "asc"
+                        ? "ascending"
+                        : header.column.getIsSorted() === "desc"
+                          ? "descending"
+                          : undefined
+                    }
                     onClick={header.column.getToggleSortingHandler()}
+                    onKeyDown={(e) => {
+                      if (header.column.getCanSort() && (e.key === "Enter" || e.key === " ")) {
+                        e.preventDefault()
+                        header.column.getToggleSortingHandler()?.(e)
+                      }
+                    }}
                   >
                     {header.isPlaceholder
                       ? null

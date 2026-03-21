@@ -74,7 +74,7 @@ export function ImpersonateButton({
     return (
       <div
         className={cn(
-          "bg-warning/10 border-warning fixed left-0 right-0 top-0 z-50 flex items-center justify-center gap-4 border-b px-4 py-2 text-sm",
+          "bg-yellow-500/10 border-yellow-500 fixed left-0 right-0 top-0 z-50 flex items-center justify-center gap-4 border-b px-4 py-2 text-sm",
           className,
         )}
         role="status"

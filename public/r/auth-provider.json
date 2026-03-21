@@ -1,0 +1,16 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "auth-provider",
+  "title": "Auth Provider",
+  "description": "React context wrapping the Better Auth client for all components.",
+  "dependencies": [],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/lib/auth-provider.tsx",
+      "content": "\"use client\"\n\nimport { createContext, useContext } from \"react\"\nimport type { ReactNode } from \"react\"\nimport type { AdminClientShape, AuthClientShape } from \"./types\"\n\ninterface AuthContextValue {\n  authClient: AuthClientShape\n  adminClient: AdminClientShape | null\n}\n\nconst AuthContext = createContext<AuthContextValue | null>(null)\n\n/** Props for the AuthProvider component */\nexport interface AuthProviderProps {\n  /** The Better Auth client instance */\n  authClient: AuthClientShape\n  /** The Better Auth admin client instance (only needed for admin components) */\n  adminClient?: AdminClientShape | undefined\n  /** Child components that will have access to the auth context */\n  children: ReactNode\n}\n\n/**\n * React context provider wrapping the Better Auth client.\n * All better-auth-ui components must be rendered inside this provider.\n *\n * @example\n * ```tsx\n * import { AuthProvider } from \"@/components/auth-provider\"\n * import { authClient } from \"@/lib/auth-client\"\n *\n * function App({ children }: { children: React.ReactNode }) {\n *   return (\n *     <AuthProvider authClient={authClient}>\n *       {children}\n *     </AuthProvider>\n *   )\n * }\n * ```\n */\nexport function AuthProvider({ authClient, adminClient, children }: AuthProviderProps) {\n  return (\n    <AuthContext.Provider value={{ authClient, adminClient: adminClient ?? null }}>\n      {children}\n    </AuthContext.Provider>\n  )\n}\n\n/**\n * Hook to access the Better Auth client from context.\n * Must be called within an AuthProvider.\n *\n * @throws Error if used outside of AuthProvider\n */\nexport function useAuthClient(): AuthClientShape {\n  const context = useContext(AuthContext)\n  if (!context) {\n    throw new Error(\"useAuthClient must be used within an AuthProvider\")\n  }\n  return context.authClient\n}\n\n/**\n * Hook to access the Better Auth admin client from context.\n * Returns the admin client or throws if not provided.\n * Must be called within an AuthProvider that has an adminClient prop.\n *\n * @throws Error if used outside of AuthProvider or if adminClient was not provided\n */\nexport function useAdminClient(): AdminClientShape {\n  const context = useContext(AuthContext)\n  if (!context) {\n    throw new Error(\"useAdminClient must be used within an AuthProvider\")\n  }\n  if (!context.adminClient) {\n    throw new Error(\n      \"useAdminClient requires an adminClient prop on AuthProvider. \" +\n        \"Make sure you have the Better Auth admin plugin configured and pass \" +\n        \"the admin client to AuthProvider.\",\n    )\n  }\n  return context.adminClient\n}\n",
+      "type": "registry:component"
+    }
+  ],
+  "type": "registry:component"
+}

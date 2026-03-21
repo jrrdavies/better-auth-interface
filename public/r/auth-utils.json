@@ -1,0 +1,16 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "auth-utils",
+  "title": "Auth Utils",
+  "description": "Shared utility functions for error handling and class merging.",
+  "dependencies": [],
+  "registryDependencies": [],
+  "files": [
+    {
+      "path": "registry/lib/utils.ts",
+      "content": "import type { BetterFetchError } from \"./types\"\n\n/**\n * Extract a human-readable error message from a Better Auth API error.\n * Falls back to a generic message if the error shape is unexpected.\n */\nexport function getErrorMessage(error: BetterFetchError | null | undefined): string {\n  if (!error) {\n    return \"An unexpected error occurred\"\n  }\n  if (error.message) {\n    return error.message\n  }\n  if (error.statusText) {\n    return error.statusText\n  }\n  return \"An unexpected error occurred\"\n}\n\n/**\n * Check if an error is a network error (as opposed to a server-side validation error).\n */\nexport function isNetworkError(error: BetterFetchError | null | undefined): boolean {\n  if (!error) return false\n  return error.status === 0 || error.status >= 500\n}\n",
+      "type": "registry:lib"
+    }
+  ],
+  "type": "registry:lib"
+}

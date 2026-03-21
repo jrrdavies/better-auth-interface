@@ -1,0 +1,18 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "impersonate-button",
+  "title": "Impersonate Button",
+  "description": "Button to start/stop user impersonation with persistent banner.",
+  "dependencies": [],
+  "registryDependencies": [
+    "button"
+  ],
+  "files": [
+    {
+      "path": "registry/admin/impersonate-button.tsx",
+      "content": "\"use client\"\n\nimport { useState } from \"react\"\nimport { cn } from \"@/lib/utils\"\nimport { Button } from \"@/components/ui/button\"\nimport { useAdminClient, useAuthClient } from \"@/registry/lib/auth-provider\"\nimport { getErrorMessage } from \"@/registry/lib/utils\"\nimport type { UserWithRole } from \"@/registry/lib/types\"\n\n/** Props for the ImpersonateButton component */\nexport interface ImpersonateButtonProps {\n  /** The user to impersonate */\n  user: UserWithRole\n  /** Callback fired when impersonation starts */\n  onImpersonateStart?: (() => void) | undefined\n  /** Callback fired when impersonation stops */\n  onImpersonateStop?: (() => void) | undefined\n  /** Additional CSS classes */\n  className?: string | undefined\n}\n\n/**\n * Button to start impersonating a user.\n * When an impersonation session is active, shows a persistent banner\n * with a \"Stop\" button to end impersonation.\n */\nexport function ImpersonateButton({\n  user,\n  onImpersonateStart,\n  onImpersonateStop,\n  className,\n}: ImpersonateButtonProps) {\n  const authClient = useAuthClient()\n  const adminClient = useAdminClient()\n  const [loading, setLoading] = useState(false)\n  const [error, setError] = useState<string | null>(null)\n\n  const session = authClient.useSession()\n  const isImpersonating = !!session.data?.session.impersonatedBy\n\n  async function handleImpersonate() {\n    setError(null)\n    setLoading(true)\n\n    const result = await adminClient.admin.impersonateUser({ userId: user.id })\n\n    if (result.error) {\n      setError(getErrorMessage(result.error))\n      setLoading(false)\n      return\n    }\n\n    setLoading(false)\n    onImpersonateStart?.()\n  }\n\n  async function handleStopImpersonating() {\n    setError(null)\n    setLoading(true)\n\n    const result = await adminClient.admin.stopImpersonating()\n\n    if (result.error) {\n      setError(getErrorMessage(result.error))\n      setLoading(false)\n      return\n    }\n\n    setLoading(false)\n    onImpersonateStop?.()\n  }\n\n  if (isImpersonating) {\n    return (\n      <div\n        className={cn(\n          \"bg-warning/10 border-warning fixed left-0 right-0 top-0 z-50 flex items-center justify-center gap-4 border-b px-4 py-2 text-sm\",\n          className,\n        )}\n        role=\"status\"\n        aria-live=\"polite\"\n      >\n        <span>\n          Impersonating <strong>{session.data?.user.name}</strong>\n        </span>\n        <Button\n          variant=\"outline\"\n          size=\"sm\"\n          onClick={() => void handleStopImpersonating()}\n          disabled={loading}\n        >\n          {loading ? \"Stopping...\" : \"Stop\"}\n        </Button>\n        {error && <span className=\"text-destructive text-xs\">{error}</span>}\n      </div>\n    )\n  }\n\n  return (\n    <div className={cn(className)}>\n      <Button\n        variant=\"outline\"\n        size=\"sm\"\n        onClick={() => void handleImpersonate()}\n        disabled={loading}\n        aria-busy={loading}\n      >\n        {loading ? \"Starting...\" : `Impersonate ${user.name}`}\n      </Button>\n      {error && (\n        <p className=\"text-destructive mt-1 text-xs\" role=\"alert\">\n          {error}\n        </p>\n      )}\n    </div>\n  )\n}\n",
+      "type": "registry:component"
+    }
+  ],
+  "type": "registry:component"
+}

@@ -1,0 +1,19 @@
+node_modules/
+.next/
+dist/
+.turbo/
+*.tsbuildinfo
+
+.env
+.env.local
+.env.*.local
+
+.DS_Store
+Thumbs.db
+
+# IDE files
+*.iml
+.idea/
+.vscode/
+
+# public/r/ is intentionally NOT ignored — must be committed for GitHub Pages

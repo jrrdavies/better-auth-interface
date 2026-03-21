@@ -1,0 +1,3 @@
+packages:
+  - "."
+  # - "apps/*"  # uncomment when adding a docs/playground app

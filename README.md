@@ -46,11 +46,7 @@ import { SignInForm } from "@/components/sign-in-form"
 
 export default function SignInPage() {
   return (
-    <SignInForm
-      onSuccess={() => router.push("/dashboard")}
-      showSignUpLink
-      signUpHref="/sign-up"
-    />
+    <SignInForm onSuccess={() => router.push("/dashboard")} showSignUpLink signUpHref="/sign-up" />
   )
 }
 ```
@@ -65,37 +61,32 @@ npx shadcn add <REGISTRY_URL>/admin-dashboard.json
 import { AdminDashboard } from "@/components/admin-dashboard"
 
 export default function AdminPage() {
-  return (
-    <AdminDashboard
-      title="User Management"
-      availableRoles={["user", "admin", "moderator"]}
-    />
-  )
+  return <AdminDashboard title="User Management" availableRoles={["user", "admin", "moderator"]} />
 }
 ```
 
 ## Components
 
-| Component | Description | Required Plugin |
-| --- | --- | --- |
-| `auth-provider` | React context wrapping the Better Auth client | — |
-| `sign-in-form` | Email & password sign-in with remember me | — |
-| `sign-up-form` | Registration with email verification support | — |
-| `forgot-password-form` | Request password reset email | — |
-| `reset-password-form` | Set new password from reset token | — |
-| `verify-email` | Email verification status display | — |
-| `change-password-form` | Change password for authenticated users | — |
-| `update-profile-form` | Update display name and avatar | — |
-| `delete-account-dialog` | Account deletion with confirmation | — |
-| `user-table` | Full-featured admin user data table | Admin |
-| `create-user-dialog` | Admin create user form | Admin |
-| `edit-user-dialog` | Admin edit user form | Admin |
-| `ban-user-dialog` | Ban/unban user with reason and expiry | Admin |
-| `set-role-dialog` | Change user role | Admin |
-| `delete-user-dialog` | Admin delete user with confirmation | Admin |
-| `set-password-dialog` | Admin set user password | Admin |
-| `impersonate-button` | Start/stop user impersonation | Admin |
-| `admin-dashboard` | Composite admin panel with all components | Admin |
+| Component               | Description                                   | Required Plugin |
+| ----------------------- | --------------------------------------------- | --------------- |
+| `auth-provider`         | React context wrapping the Better Auth client | —               |
+| `sign-in-form`          | Email & password sign-in with remember me     | —               |
+| `sign-up-form`          | Registration with email verification support  | —               |
+| `forgot-password-form`  | Request password reset email                  | —               |
+| `reset-password-form`   | Set new password from reset token             | —               |
+| `verify-email`          | Email verification status display             | —               |
+| `change-password-form`  | Change password for authenticated users       | —               |
+| `update-profile-form`   | Update display name and avatar                | —               |
+| `delete-account-dialog` | Account deletion with confirmation            | —               |
+| `user-table`            | Full-featured admin user data table           | Admin           |
+| `create-user-dialog`    | Admin create user form                        | Admin           |
+| `edit-user-dialog`      | Admin edit user form                          | Admin           |
+| `ban-user-dialog`       | Ban/unban user with reason and expiry         | Admin           |
+| `set-role-dialog`       | Change user role                              | Admin           |
+| `delete-user-dialog`    | Admin delete user with confirmation           | Admin           |
+| `set-password-dialog`   | Admin set user password                       | Admin           |
+| `impersonate-button`    | Start/stop user impersonation                 | Admin           |
+| `admin-dashboard`       | Composite admin panel with all components     | Admin           |
 
 ## How it works
 

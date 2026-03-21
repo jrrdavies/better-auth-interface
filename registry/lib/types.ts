@@ -98,8 +98,8 @@ export interface AuthClientShape {
     email: (data: {
       email: string
       password: string
-      callbackURL?: string
-      rememberMe?: boolean
+      callbackURL?: string | undefined
+      rememberMe?: boolean | undefined
     }) => Promise<BetterFetchResponse<{ redirect: boolean; token: string; user: User }>>
   }
   signUp: {
@@ -107,35 +107,35 @@ export interface AuthClientShape {
       email: string
       password: string
       name: string
-      image?: string
-      callbackURL?: string
+      image?: string | undefined
+      callbackURL?: string | undefined
     }) => Promise<BetterFetchResponse<{ token: string | null; user: User }>>
   }
   requestPasswordReset: (data: {
     email: string
-    redirectTo?: string
+    redirectTo?: string | undefined
   }) => Promise<BetterFetchResponse<{ status: boolean; message: string }>>
   resetPassword: (data: {
     newPassword: string
-    token?: string
+    token?: string | undefined
   }) => Promise<BetterFetchResponse<{ status: boolean }>>
   verifyEmail: (query: {
     token: string
-    callbackURL?: string
-  }) => Promise<BetterFetchResponse<{ status: boolean; user?: User }>>
+    callbackURL?: string | undefined
+  }) => Promise<BetterFetchResponse<{ status: boolean; user?: User | undefined }>>
   changePassword: (data: {
     newPassword: string
     currentPassword: string
-    revokeOtherSessions?: boolean
+    revokeOtherSessions?: boolean | undefined
   }) => Promise<BetterFetchResponse<{ token: string | null; user: User }>>
   updateUser: (data: {
-    name?: string
-    image?: string | null
+    name?: string | undefined
+    image?: string | null | undefined
   }) => Promise<BetterFetchResponse<{ status: boolean }>>
   deleteUser: (data: {
-    callbackURL?: string
-    password?: string
-    token?: string
+    callbackURL?: string | undefined
+    password?: string | undefined
+    token?: string | undefined
   }) => Promise<BetterFetchResponse<{ success: boolean; message: string }>>
   useSession: () => {
     data: SessionData | null
@@ -147,40 +147,40 @@ export interface AuthClientShape {
 /** Admin client methods provided by the Better Auth admin plugin */
 export interface AdminClientShape {
   admin: {
-    listUsers: (query?: {
-      searchValue?: string
-      searchField?: "name" | "email"
-      searchOperator?: "contains" | "starts_with" | "ends_with"
-      limit?: number
-      offset?: number
-      sortBy?: string
-      sortDirection?: "asc" | "desc"
-      filterField?: string
-      filterValue?: string | number | boolean
-      filterOperator?: string
-    }) => Promise<BetterFetchResponse<{ users: UserWithRole[]; total: number }>>
+    listUsers: (
+      query?:
+        | {
+            searchValue?: string | undefined
+            searchField?: "name" | "email" | undefined
+            searchOperator?: "contains" | "starts_with" | "ends_with" | undefined
+            limit?: number | undefined
+            offset?: number | undefined
+            sortBy?: string | undefined
+            sortDirection?: "asc" | "desc" | undefined
+            filterField?: string | undefined
+            filterValue?: string | number | boolean | undefined
+            filterOperator?: string | undefined
+          }
+        | undefined,
+    ) => Promise<BetterFetchResponse<{ users: UserWithRole[]; total: number }>>
     createUser: (data: {
       email: string
       name: string
-      password?: string
-      role?: string
-      data?: Record<string, unknown>
+      password?: string | undefined
+      role?: string | undefined
+      data?: Record<string, unknown> | undefined
     }) => Promise<BetterFetchResponse<{ user: UserWithRole }>>
     updateUser: (data: {
       userId: string
       data: Record<string, unknown>
     }) => Promise<BetterFetchResponse<{ user: UserWithRole }>>
-    deleteUser: (data: {
-      userId: string
-    }) => Promise<BetterFetchResponse<{ success: boolean }>>
+    deleteUser: (data: { userId: string }) => Promise<BetterFetchResponse<{ success: boolean }>>
     banUser: (data: {
       userId: string
-      banReason?: string
-      banExpiresIn?: number
+      banReason?: string | undefined
+      banExpiresIn?: number | undefined
     }) => Promise<BetterFetchResponse<{ user: UserWithRole }>>
-    unbanUser: (data: {
-      userId: string
-    }) => Promise<BetterFetchResponse<{ user: UserWithRole }>>
+    unbanUser: (data: { userId: string }) => Promise<BetterFetchResponse<{ user: UserWithRole }>>
     setUserRole: (data: {
       userId: string
       role: string
@@ -192,8 +192,6 @@ export interface AdminClientShape {
     impersonateUser: (data: {
       userId: string
     }) => Promise<BetterFetchResponse<{ session: Session; user: UserWithRole }>>
-    stopImpersonating: () => Promise<
-      BetterFetchResponse<{ session: Session; user: User }>
-    >
+    stopImpersonating: () => Promise<BetterFetchResponse<{ session: Session; user: User }>>
   }
 }

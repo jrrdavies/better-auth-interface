@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>better-auth-ui — Drop-in Better Auth UI components</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        line-height: 1.6;
+        color: #e4e4e7;
+        background: #09090b;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+      }
+      .container {
+        max-width: 640px;
+        width: 100%;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        color: #fafafa;
+        margin-bottom: 0.5rem;
+      }
+      .tagline {
+        color: #a1a1aa;
+        font-size: 1.125rem;
+        margin-bottom: 2rem;
+      }
+      .install {
+        background: #18181b;
+        border: 1px solid #27272a;
+        border-radius: 0.5rem;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.5rem;
+      }
+      .install p {
+        color: #a1a1aa;
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+      }
+      code {
+        font-family: "SF Mono", "Fira Code", "Fira Mono", Menlo, monospace;
+        font-size: 0.875rem;
+        color: #e4e4e7;
+        word-break: break-all;
+      }
+      .components {
+        margin-bottom: 2rem;
+      }
+      .components h2 {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #a1a1aa;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.75rem;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 0.5rem;
+      }
+      .grid a {
+        display: block;
+        padding: 0.5rem 0.75rem;
+        background: #18181b;
+        border: 1px solid #27272a;
+        border-radius: 0.375rem;
+        color: #e4e4e7;
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-family: "SF Mono", "Fira Code", "Fira Mono", Menlo, monospace;
+        transition: border-color 0.15s;
+      }
+      .grid a:hover {
+        border-color: #3f3f46;
+      }
+      .links {
+        display: flex;
+        gap: 1.5rem;
+      }
+      .links a {
+        color: #a1a1aa;
+        text-decoration: none;
+        font-size: 0.875rem;
+        transition: color 0.15s;
+      }
+      .links a:hover {
+        color: #fafafa;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>better-auth-ui</h1>
+      <p class="tagline">Drop-in Better Auth UI components for your React app</p>
+
+      <div class="install">
+        <p>Get started</p>
+        <code>npx shadcn add https://jrrdavies.github.io/better-auth-ui/r/sign-in-form.json</code>
+      </div>
+
+      <div class="components">
+        <h2>Auth</h2>
+        <div class="grid">
+          <a href="r/auth-provider.json">auth-provider</a>
+          <a href="r/sign-in-form.json">sign-in-form</a>
+          <a href="r/sign-up-form.json">sign-up-form</a>
+          <a href="r/forgot-password-form.json">forgot-password-form</a>
+          <a href="r/reset-password-form.json">reset-password-form</a>
+          <a href="r/verify-email.json">verify-email</a>
+          <a href="r/change-password-form.json">change-password-form</a>
+          <a href="r/update-profile-form.json">update-profile-form</a>
+          <a href="r/delete-account-dialog.json">delete-account-dialog</a>
+        </div>
+      </div>
+
+      <div class="components">
+        <h2>Admin</h2>
+        <div class="grid">
+          <a href="r/admin-dashboard.json">admin-dashboard</a>
+          <a href="r/user-table.json">user-table</a>
+          <a href="r/create-user-dialog.json">create-user-dialog</a>
+          <a href="r/edit-user-dialog.json">edit-user-dialog</a>
+          <a href="r/ban-user-dialog.json">ban-user-dialog</a>
+          <a href="r/set-role-dialog.json">set-role-dialog</a>
+          <a href="r/delete-user-dialog.json">delete-user-dialog</a>
+          <a href="r/set-password-dialog.json">set-password-dialog</a>
+          <a href="r/impersonate-button.json">impersonate-button</a>
+        </div>
+      </div>
+
+      <div class="links">
+        <a href="https://github.com/jrrdavies/better-auth-ui">GitHub</a>
+        <a href="https://better-auth.com">Better Auth</a>
+        <a href="https://ui.shadcn.com">shadcn/ui</a>
+      </div>
+    </div>
+  </body>
+</html>

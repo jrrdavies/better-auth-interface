@@ -16,4 +16,5 @@ Thumbs.db
 .idea/
 .vscode/
 
+
 # public/r/ is intentionally NOT ignored — must be committed for GitHub Pages

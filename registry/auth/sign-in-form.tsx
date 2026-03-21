@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/card"
 import { useAuthClient } from "@/registry/lib/auth-provider"
 import { getErrorMessage, isNetworkError } from "@/registry/lib/utils"
-import type { Session } from "@/registry/lib/types"
+import type { User } from "@/registry/lib/types"
 
 const signInSchema = z.object({
   email: z.string().min(1, "Email is required").email("Please enter a valid email address"),
@@ -31,8 +31,8 @@ type SignInFormValues = z.infer<typeof signInSchema>
 
 /** Props for the SignInForm component */
 export interface SignInFormProps {
-  /** Callback fired after successful sign-in */
-  onSuccess?: ((session: Session) => void) | undefined
+  /** Callback fired after successful sign-in with the authenticated user */
+  onSuccess?: ((user: User) => void) | undefined
   /** Callback fired when sign-in fails */
   onError?: ((error: Error) => void) | undefined
   /** URL to redirect to after successful sign-in */
@@ -97,14 +97,7 @@ export function SignInForm({
     }
 
     if (result.data) {
-      onSuccess?.({
-        id: "",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        userId: result.data.user.id,
-        expiresAt: new Date(),
-        token: result.data.token,
-      })
+      onSuccess?.(result.data.user)
     }
   }
 

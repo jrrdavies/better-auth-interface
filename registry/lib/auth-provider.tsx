@@ -23,7 +23,7 @@ export interface AuthProviderProps {
 
 /**
  * React context provider wrapping the Better Auth client.
- * All better-auth-ui components must be rendered inside this provider.
+ * All better-auth-interface components must be rendered inside this provider.
  *
  * @example
  * ```tsx

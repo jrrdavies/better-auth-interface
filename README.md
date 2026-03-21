@@ -1,4 +1,4 @@
-# better-auth-ui
+# better-auth-interface
 
 > Drop-in Better Auth UI components for your React app
 
@@ -21,7 +21,7 @@ npx shadcn init
 ### 2. Add the auth provider
 
 ```bash
-npx shadcn add https://jrrdavies.github.io/better-auth-ui/r/auth-provider.json
+npx shadcn add https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json
 ```
 
 Wrap your app with the provider:
@@ -38,7 +38,7 @@ function App({ children }: { children: React.ReactNode }) {
 ### 3. Install your first component
 
 ```bash
-npx shadcn add https://jrrdavies.github.io/better-auth-ui/r/sign-in-form.json
+npx shadcn add https://jrrdavies.github.io/better-auth-interface/r/sign-in-form.json
 ```
 
 ```tsx
@@ -54,7 +54,7 @@ export default function SignInPage() {
 ## Admin dashboard
 
 ```bash
-npx shadcn add https://jrrdavies.github.io/better-auth-ui/r/admin-dashboard.json
+npx shadcn add https://jrrdavies.github.io/better-auth-interface/r/admin-dashboard.json
 ```
 
 ```tsx

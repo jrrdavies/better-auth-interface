@@ -1,10 +1,10 @@
 {
-  "name": "better-auth-ui",
+  "name": "better-auth-interface",
   "version": "0.1.0",
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "build:registry": "npx shadcn build",
+    "build:registry": "pnpm dlx shadcn build",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write .",

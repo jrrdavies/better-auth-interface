@@ -185,12 +185,15 @@ export function AdminDashboard({
         onDeleteUser={setDeleteUser}
       />
 
-      {/* Action dialogs — rendered when a user is selected */}
+      {/* Action dialogs — controlled open state from table row actions */}
       {editUser && (
         <EditUserDialog
           user={editUser}
           roles={availableRoles}
-          trigger={<span />}
+          open={!!editUser}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) setEditUser(null)
+          }}
           onSuccess={() => {
             setEditUser(null)
             refresh()
@@ -200,7 +203,10 @@ export function AdminDashboard({
       {banUser && (
         <BanUserDialog
           user={banUser}
-          trigger={<span />}
+          open={!!banUser}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) setBanUser(null)
+          }}
           onSuccess={() => {
             setBanUser(null)
             refresh()
@@ -211,7 +217,10 @@ export function AdminDashboard({
         <SetRoleDialog
           user={roleUser}
           availableRoles={availableRoles}
-          trigger={<span />}
+          open={!!roleUser}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) setRoleUser(null)
+          }}
           onSuccess={() => {
             setRoleUser(null)
             refresh()
@@ -221,7 +230,10 @@ export function AdminDashboard({
       {deleteUser && (
         <DeleteUserDialog
           user={deleteUser}
-          trigger={<span />}
+          open={!!deleteUser}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) setDeleteUser(null)
+          }}
           onSuccess={() => {
             setDeleteUser(null)
             refresh()
@@ -231,7 +243,10 @@ export function AdminDashboard({
       {passwordUser && (
         <SetPasswordDialog
           user={passwordUser}
-          trigger={<span />}
+          open={!!passwordUser}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) setPasswordUser(null)
+          }}
           onSuccess={() => {
             setPasswordUser(null)
             refresh()

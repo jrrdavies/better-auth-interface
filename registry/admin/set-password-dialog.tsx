@@ -41,14 +41,25 @@ export interface SetPasswordDialogProps {
   trigger?: ReactNode | undefined
   /** Callback fired after successful password change */
   onSuccess?: (() => void) | undefined
+  /** Controlled open state */
+  open?: boolean | undefined
+  /** Callback when open state changes */
+  onOpenChange?: ((open: boolean) => void) | undefined
 }
 
 /**
  * Admin dialog for setting a user's password.
  */
-export function SetPasswordDialog({ user, trigger, onSuccess }: SetPasswordDialogProps) {
+export function SetPasswordDialog({
+  user,
+  trigger,
+  onSuccess,
+  open: openProp,
+  onOpenChange,
+}: SetPasswordDialogProps) {
   const adminClient = useAdminClient()
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
+  const isOpen = openProp ?? internalOpen
   const [serverError, setServerError] = useState<string | null>(null)
 
   const {
@@ -77,13 +88,15 @@ export function SetPasswordDialog({ user, trigger, onSuccess }: SetPasswordDialo
       return
     }
 
-    setOpen(false)
+    setInternalOpen(false)
+    onOpenChange?.(false)
     reset()
     onSuccess?.()
   }
 
   function handleOpenChange(nextOpen: boolean) {
-    setOpen(nextOpen)
+    setInternalOpen(nextOpen)
+    onOpenChange?.(nextOpen)
     if (!nextOpen) {
       reset()
       setServerError(null)
@@ -91,7 +104,7 @@ export function SetPasswordDialog({ user, trigger, onSuccess }: SetPasswordDialo
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {trigger ?? <Button variant="outline">Set Password</Button>}
       </DialogTrigger>

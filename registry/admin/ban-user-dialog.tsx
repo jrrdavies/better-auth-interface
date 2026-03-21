@@ -43,15 +43,26 @@ export interface BanUserDialogProps {
   trigger?: ReactNode | undefined
   /** Callback fired after successful ban/unban */
   onSuccess?: (() => void) | undefined
+  /** Controlled open state */
+  open?: boolean | undefined
+  /** Callback when open state changes */
+  onOpenChange?: ((open: boolean) => void) | undefined
 }
 
 /**
  * Admin dialog for banning or unbanning a user.
  * Shows ban form if user is not banned, unban option if already banned.
  */
-export function BanUserDialog({ user, trigger, onSuccess }: BanUserDialogProps) {
+export function BanUserDialog({
+  user,
+  trigger,
+  onSuccess,
+  open: openProp,
+  onOpenChange,
+}: BanUserDialogProps) {
   const adminClient = useAdminClient()
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
+  const isOpen = openProp ?? internalOpen
   const [serverError, setServerError] = useState<string | null>(null)
   const [unbanning, setUnbanning] = useState(false)
 
@@ -89,7 +100,8 @@ export function BanUserDialog({ user, trigger, onSuccess }: BanUserDialogProps) 
       return
     }
 
-    setOpen(false)
+    setInternalOpen(false)
+    onOpenChange?.(false)
     reset()
     onSuccess?.()
   }
@@ -110,12 +122,14 @@ export function BanUserDialog({ user, trigger, onSuccess }: BanUserDialogProps) 
     }
 
     setUnbanning(false)
-    setOpen(false)
+    setInternalOpen(false)
+    onOpenChange?.(false)
     onSuccess?.()
   }
 
   function handleOpenChange(nextOpen: boolean) {
-    setOpen(nextOpen)
+    setInternalOpen(nextOpen)
+    onOpenChange?.(nextOpen)
     if (!nextOpen) {
       reset()
       setServerError(null)
@@ -125,7 +139,7 @@ export function BanUserDialog({ user, trigger, onSuccess }: BanUserDialogProps) 
   const isBanned = !!user.banned
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {trigger ?? (
           <Button variant={isBanned ? "outline" : "destructive"}>

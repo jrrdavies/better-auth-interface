@@ -46,6 +46,10 @@ export interface EditUserDialogProps {
   onSuccess?: ((user: UserWithRole) => void) | undefined
   /** Available roles for the role select */
   roles?: string[] | undefined
+  /** Controlled open state */
+  open?: boolean | undefined
+  /** Callback when open state changes */
+  onOpenChange?: ((open: boolean) => void) | undefined
 }
 
 /**
@@ -56,9 +60,12 @@ export function EditUserDialog({
   trigger,
   onSuccess,
   roles = ["user", "admin"],
+  open: openProp,
+  onOpenChange,
 }: EditUserDialogProps) {
   const adminClient = useAdminClient()
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
+  const isOpen = openProp ?? internalOpen
   const [serverError, setServerError] = useState<string | null>(null)
 
   const {
@@ -76,10 +83,10 @@ export function EditUserDialog({
   const selectedRole = watch("role")
 
   useEffect(() => {
-    if (open) {
+    if (isOpen) {
       reset({ name: user.name, email: user.email, role: user.role ?? "user" })
     }
-  }, [open, user, reset])
+  }, [isOpen, user, reset])
 
   async function onSubmit(values: EditUserFormValues) {
     setServerError(null)
@@ -98,20 +105,22 @@ export function EditUserDialog({
     }
 
     if (result.data) {
-      setOpen(false)
+      setInternalOpen(false)
+      onOpenChange?.(false)
       onSuccess?.(result.data.user)
     }
   }
 
   function handleOpenChange(nextOpen: boolean) {
-    setOpen(nextOpen)
+    setInternalOpen(nextOpen)
+    onOpenChange?.(nextOpen)
     if (!nextOpen) {
       setServerError(null)
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{trigger ?? <Button variant="outline">Edit</Button>}</DialogTrigger>
       <DialogContent>
         <DialogHeader>

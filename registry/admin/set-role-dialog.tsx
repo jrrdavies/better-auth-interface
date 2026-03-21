@@ -34,6 +34,10 @@ export interface SetRoleDialogProps {
   availableRoles?: string[] | undefined
   /** Callback fired after successful role change */
   onSuccess?: (() => void) | undefined
+  /** Controlled open state */
+  open?: boolean | undefined
+  /** Callback when open state changes */
+  onOpenChange?: ((open: boolean) => void) | undefined
 }
 
 /**
@@ -44,9 +48,12 @@ export function SetRoleDialog({
   trigger,
   availableRoles = ["user", "admin"],
   onSuccess,
+  open: openProp,
+  onOpenChange,
 }: SetRoleDialogProps) {
   const adminClient = useAdminClient()
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
+  const isOpen = openProp ?? internalOpen
   const [role, setRole] = useState(user.role ?? "user")
   const [serverError, setServerError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
@@ -70,12 +77,14 @@ export function SetRoleDialog({
     }
 
     setSaving(false)
-    setOpen(false)
+    setInternalOpen(false)
+    onOpenChange?.(false)
     onSuccess?.()
   }
 
   function handleOpenChange(nextOpen: boolean) {
-    setOpen(nextOpen)
+    setInternalOpen(nextOpen)
+    onOpenChange?.(nextOpen)
     if (nextOpen) {
       setRole(user.role ?? "user")
     }
@@ -85,7 +94,7 @@ export function SetRoleDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {trigger ?? <Button variant="outline">Set Role</Button>}
       </DialogTrigger>

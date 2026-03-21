@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuthClient } from "@/registry/lib/auth-provider"
@@ -29,6 +29,10 @@ export function VerifyEmail({ token: tokenProp, onSuccess, onError, className }:
   const authClient = useAuthClient()
   const [state, setState] = useState<VerifyState>("loading")
   const [errorMessage, setErrorMessage] = useState<string>("")
+  const onSuccessRef = useRef(onSuccess)
+  const onErrorRef = useRef(onError)
+  onSuccessRef.current = onSuccess
+  onErrorRef.current = onError
 
   const token =
     tokenProp ??
@@ -55,12 +59,12 @@ export function VerifyEmail({ token: tokenProp, onSuccess, onError, className }:
           : getErrorMessage(result.error)
         setErrorMessage(message)
         setState("error")
-        onError?.(new Error(message))
+        onErrorRef.current?.(new Error(message))
         return
       }
 
       setState("success")
-      onSuccess?.()
+      onSuccessRef.current?.()
     }
 
     void verify()
@@ -68,7 +72,8 @@ export function VerifyEmail({ token: tokenProp, onSuccess, onError, className }:
     return () => {
       cancelled = true
     }
-  }, [token, authClient, onSuccess, onError])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, authClient])
 
   return (
     <Card className={cn("w-full max-w-md", className)}>

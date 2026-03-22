@@ -185,6 +185,28 @@
       ]
     },
     {
+      "name": "update-username-form",
+      "type": "registry:component",
+      "title": "Update Username Form",
+      "description": "Change username form with real-time availability checking. Requires the Better Auth username plugin.",
+      "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
+      "registryDependencies": [
+        "auth-provider",
+        "auth-types",
+        "auth-utils",
+        "button",
+        "input",
+        "label",
+        "card"
+      ],
+      "files": [
+        {
+          "path": "registry/auth/update-username-form.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
       "name": "delete-account-dialog",
       "type": "registry:component",
       "title": "Delete Account Dialog",

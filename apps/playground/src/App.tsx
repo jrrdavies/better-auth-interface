@@ -10,6 +10,7 @@ import { VerifyEmail } from "@/registry/auth/verify-email"
 import { ChangePasswordForm } from "@/registry/auth/change-password-form"
 import { UpdateProfileForm } from "@/registry/auth/update-profile-form"
 import { DeleteAccountDialog } from "@/registry/auth/delete-account-dialog"
+import { UpdateUsernameForm } from "@/registry/auth/update-username-form"
 import { AdminDashboard } from "@/registry/admin/admin-dashboard"
 
 type Tab = "auth" | "admin"
@@ -21,6 +22,7 @@ type AuthView =
   | "verify-email"
   | "change-password"
   | "update-profile"
+  | "update-username"
   | "delete-account"
 
 function App() {
@@ -72,6 +74,7 @@ function App() {
                   ["verify-email", "Verify Email"],
                   ["change-password", "Change Password"],
                   ["update-profile", "Update Profile"],
+                  ["update-username", "Update Username"],
                   ["delete-account", "Delete Account"],
                 ] as const
               ).map(([key, label]) => (
@@ -126,6 +129,9 @@ function App() {
               )}
               {authView === "update-profile" && (
                 <UpdateProfileForm onSuccess={(user) => alert(`Profile updated: ${user.name}`)} />
+              )}
+              {authView === "update-username" && (
+                <UpdateUsernameForm onSuccess={() => alert("Username updated")} />
               )}
               {authView === "delete-account" && (
                 <div className="flex flex-col items-center gap-4">

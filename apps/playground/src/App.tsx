@@ -10,11 +10,13 @@ import { VerifyEmail } from "@/registry/auth/verify-email"
 import { ChangePasswordForm } from "@/registry/auth/change-password-form"
 import { UpdateProfileForm } from "@/registry/auth/update-profile-form"
 import { DeleteAccountDialog } from "@/registry/auth/delete-account-dialog"
+import { UsernameSignInForm } from "@/registry/auth/username-sign-in-form"
 import { AdminDashboard } from "@/registry/admin/admin-dashboard"
 
 type Tab = "auth" | "admin"
 type AuthView =
   | "sign-in"
+  | "username-sign-in"
   | "sign-up"
   | "forgot-password"
   | "reset-password"
@@ -66,6 +68,7 @@ function App() {
               {(
                 [
                   ["sign-in", "Sign In"],
+                  ["username-sign-in", "Username Sign In"],
                   ["sign-up", "Sign Up"],
                   ["forgot-password", "Forgot Password"],
                   ["reset-password", "Reset Password"],
@@ -95,6 +98,14 @@ function App() {
                 <SignInForm
                   onSuccess={(user) => alert(`Signed in as ${user.name}`)}
                   onError={(err) => console.log("Sign in error:", err)}
+                  showSignUpLink
+                  signUpHref="#"
+                />
+              )}
+              {authView === "username-sign-in" && (
+                <UsernameSignInForm
+                  onSuccess={(user) => alert(`Signed in as ${user.name}`)}
+                  onError={(err) => console.log("Username sign in error:", err)}
                   showSignUpLink
                   signUpHref="#"
                 />

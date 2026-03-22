@@ -82,6 +82,15 @@ export const mockAuthClient: AuthClientShape = {
       isLoggedIn = true
       return ok({ redirect: false, token: "mock-token-123", user })
     },
+    username: async ({ username, password }) => {
+      await delay(800)
+      if (username === "fail") return err("Invalid credentials", 401)
+      if (!password) return err("Password is required")
+      const user = mockUsers.find((u) => u.name.toLowerCase().replace(/\s+/g, "") === username.toLowerCase()) ?? mockUsers[0]!
+      currentUser = user
+      isLoggedIn = true
+      return ok({ redirect: false, token: "mock-token-123", user })
+    },
   },
   signUp: {
     email: async ({ name, email }) => {

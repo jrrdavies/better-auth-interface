@@ -101,6 +101,12 @@ export interface AuthClientShape {
       callbackURL?: string | undefined
       rememberMe?: boolean | undefined
     }) => Promise<BetterFetchResponse<{ redirect: boolean; token: string; user: User }>>
+    username?: (data: {
+      username: string
+      password: string
+      callbackURL?: string | undefined
+      rememberMe?: boolean | undefined
+    }) => Promise<BetterFetchResponse<{ redirect: boolean; token: string; user: User }>>
   }
   signUp: {
     email: (data: {

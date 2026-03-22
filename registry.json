@@ -69,6 +69,29 @@
       ]
     },
     {
+      "name": "username-sign-in-form",
+      "type": "registry:component",
+      "title": "Username Sign In Form",
+      "description": "Username and password sign-in form for the Better Auth username plugin.",
+      "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
+      "registryDependencies": [
+        "auth-provider",
+        "auth-types",
+        "auth-utils",
+        "button",
+        "input",
+        "label",
+        "checkbox",
+        "card"
+      ],
+      "files": [
+        {
+          "path": "registry/auth/username-sign-in-form.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
       "name": "sign-up-form",
       "type": "registry:component",
       "title": "Sign Up Form",

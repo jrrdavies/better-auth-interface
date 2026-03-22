@@ -18,10 +18,22 @@ source code — you own and customize them directly.
 npx shadcn init
 ```
 
-### 2. Add the auth provider
+### 2. Add the registry
+
+Add this to your project's `components.json`:
+
+```json
+{
+  "registries": {
+    "@better-auth-interface": "https://jrrdavies.github.io/better-auth-interface/r/{name}.json"
+  }
+}
+```
+
+### 3. Add the auth provider
 
 ```bash
-npx shadcn add https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json
+npx shadcn add @better-auth-interface/auth-provider
 ```
 
 Wrap your app with the provider:
@@ -35,10 +47,10 @@ function App({ children }: { children: React.ReactNode }) {
 }
 ```
 
-### 3. Install your first component
+### 4. Install your first component
 
 ```bash
-npx shadcn add https://jrrdavies.github.io/better-auth-interface/r/sign-in-form.json
+npx shadcn add @better-auth-interface/sign-in-form
 ```
 
 ```tsx
@@ -54,7 +66,7 @@ export default function SignInPage() {
 ## Admin dashboard
 
 ```bash
-npx shadcn add https://jrrdavies.github.io/better-auth-interface/r/admin-dashboard.json
+npx shadcn add @better-auth-interface/admin-dashboard
 ```
 
 ```tsx
@@ -67,26 +79,37 @@ export default function AdminPage() {
 
 ## Components
 
-| Component               | Description                                   | Required Plugin |
-| ----------------------- | --------------------------------------------- | --------------- |
-| `auth-provider`         | React context wrapping the Better Auth client | —               |
-| `sign-in-form`          | Email & password sign-in with remember me     | —               |
-| `sign-up-form`          | Registration with email verification support  | —               |
-| `forgot-password-form`  | Request password reset email                  | —               |
-| `reset-password-form`   | Set new password from reset token             | —               |
-| `verify-email`          | Email verification status display             | —               |
-| `change-password-form`  | Change password for authenticated users       | —               |
-| `update-profile-form`   | Update display name and avatar                | —               |
-| `delete-account-dialog` | Account deletion with confirmation            | —               |
-| `user-table`            | Full-featured admin user data table           | Admin           |
-| `create-user-dialog`    | Admin create user form                        | Admin           |
-| `edit-user-dialog`      | Admin edit user form                          | Admin           |
-| `ban-user-dialog`       | Ban/unban user with reason and expiry         | Admin           |
-| `set-role-dialog`       | Change user role                              | Admin           |
-| `delete-user-dialog`    | Admin delete user with confirmation           | Admin           |
-| `set-password-dialog`   | Admin set user password                       | Admin           |
-| `impersonate-button`    | Start/stop user impersonation                 | Admin           |
-| `admin-dashboard`       | Composite admin panel with all components     | Admin           |
+| Component               | Install                                                       | Required Plugin |
+| ----------------------- | ------------------------------------------------------------- | --------------- |
+| `auth-provider`         | `npx shadcn add @better-auth-interface/auth-provider`         | —               |
+| `sign-in-form`          | `npx shadcn add @better-auth-interface/sign-in-form`          | —               |
+| `sign-up-form`          | `npx shadcn add @better-auth-interface/sign-up-form`          | —               |
+| `forgot-password-form`  | `npx shadcn add @better-auth-interface/forgot-password-form`  | —               |
+| `reset-password-form`   | `npx shadcn add @better-auth-interface/reset-password-form`   | —               |
+| `verify-email`          | `npx shadcn add @better-auth-interface/verify-email`          | —               |
+| `change-password-form`  | `npx shadcn add @better-auth-interface/change-password-form`  | —               |
+| `update-profile-form`   | `npx shadcn add @better-auth-interface/update-profile-form`   | —               |
+| `delete-account-dialog` | `npx shadcn add @better-auth-interface/delete-account-dialog` | —               |
+| `user-table`            | `npx shadcn add @better-auth-interface/user-table`            | Admin           |
+| `create-user-dialog`    | `npx shadcn add @better-auth-interface/create-user-dialog`    | Admin           |
+| `edit-user-dialog`      | `npx shadcn add @better-auth-interface/edit-user-dialog`      | Admin           |
+| `ban-user-dialog`       | `npx shadcn add @better-auth-interface/ban-user-dialog`       | Admin           |
+| `set-role-dialog`       | `npx shadcn add @better-auth-interface/set-role-dialog`       | Admin           |
+| `delete-user-dialog`    | `npx shadcn add @better-auth-interface/delete-user-dialog`    | Admin           |
+| `set-password-dialog`   | `npx shadcn add @better-auth-interface/set-password-dialog`   | Admin           |
+| `impersonate-button`    | `npx shadcn add @better-auth-interface/impersonate-button`    | Admin           |
+| `admin-dashboard`       | `npx shadcn add @better-auth-interface/admin-dashboard`       | Admin           |
+
+<details>
+<summary>Manual installation (without registry config)</summary>
+
+If you prefer not to add the registry to `components.json`, you can install any component using the full URL:
+
+```bash
+npx shadcn add https://jrrdavies.github.io/better-auth-interface/r/sign-in-form.json
+```
+
+</details>
 
 ## How it works
 

@@ -9,8 +9,8 @@
     "@hookform/resolvers"
   ],
   "registryDependencies": [
-    "auth-provider",
-    "auth-utils",
+    "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
+    "https://jrrdavies.github.io/better-auth-interface/r/auth-utils.json",
     "button",
     "input",
     "label",

@@ -5,9 +5,9 @@
   "description": "Admin confirmation dialog for deleting a user.",
   "dependencies": [],
   "registryDependencies": [
-    "auth-provider",
-    "auth-types",
-    "auth-utils",
+    "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
+    "https://jrrdavies.github.io/better-auth-interface/r/auth-types.json",
+    "https://jrrdavies.github.io/better-auth-interface/r/auth-utils.json",
     "button",
     "dialog"
   ],

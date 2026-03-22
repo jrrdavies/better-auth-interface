@@ -7,9 +7,9 @@
     "@tanstack/react-table"
   ],
   "registryDependencies": [
-    "auth-provider",
-    "auth-types",
-    "auth-utils",
+    "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
+    "https://jrrdavies.github.io/better-auth-interface/r/auth-types.json",
+    "https://jrrdavies.github.io/better-auth-interface/r/auth-utils.json",
     "avatar",
     "badge",
     "button",

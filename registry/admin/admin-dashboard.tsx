@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { Users, ShieldAlert, Shield } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAdminClient, useAuthClient } from "@/registry/lib/auth-provider"
@@ -140,7 +141,10 @@ export function AdminDashboard({
         <div className="grid gap-4 sm:grid-cols-3">
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Total Users</CardDescription>
+              <div className="flex items-center justify-between">
+                <CardDescription>Total Users</CardDescription>
+                <Users className="text-muted-foreground h-4 w-4" />
+              </div>
               <CardTitle className="text-4xl">{stats.totalUsers}</CardTitle>
             </CardHeader>
             <CardContent>
@@ -149,7 +153,10 @@ export function AdminDashboard({
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Banned Users</CardDescription>
+              <div className="flex items-center justify-between">
+                <CardDescription>Banned Users</CardDescription>
+                <ShieldAlert className="text-muted-foreground h-4 w-4" />
+              </div>
               <CardTitle className="text-4xl">{stats.bannedUsers}</CardTitle>
             </CardHeader>
             <CardContent>
@@ -158,7 +165,10 @@ export function AdminDashboard({
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Admins</CardDescription>
+              <div className="flex items-center justify-between">
+                <CardDescription>Admins</CardDescription>
+                <Shield className="text-muted-foreground h-4 w-4" />
+              </div>
               <CardTitle className="text-4xl">{stats.adminCount}</CardTitle>
             </CardHeader>
             <CardContent>

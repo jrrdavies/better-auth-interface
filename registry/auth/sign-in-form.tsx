@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -41,6 +42,8 @@ export interface SignInFormProps {
   showSignUpLink?: boolean | undefined
   /** URL for the sign-up page link */
   signUpHref?: string | undefined
+  /** URL for the forgot password page link */
+  forgotPasswordHref?: string | undefined
   /** Additional CSS classes for the root element */
   className?: string | undefined
 }
@@ -55,6 +58,7 @@ export function SignInForm({
   redirectTo,
   showSignUpLink = false,
   signUpHref = "/sign-up",
+  forgotPasswordHref = "/forgot-password",
   className,
 }: SignInFormProps) {
   const authClient = useAuthClient()
@@ -107,7 +111,7 @@ export function SignInForm({
         <CardTitle>Sign in</CardTitle>
         <CardDescription>Enter your email and password to sign in to your account</CardDescription>
       </CardHeader>
-      <form onSubmit={(e) => void handleSubmit(onSubmit)(e)}>
+      <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-6">
         <CardContent className="space-y-4">
           {serverError && (
             <div
@@ -139,7 +143,16 @@ export function SignInForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="sign-in-password">Password</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="sign-in-password">Password</Label>
+              <a
+                href={forgotPasswordHref}
+                tabIndex={-1}
+                className="text-muted-foreground text-sm underline-offset-4 hover:text-primary hover:underline"
+              >
+                Forgot password?
+              </a>
+            </div>
             <Input
               id="sign-in-password"
               type="password"
@@ -156,7 +169,7 @@ export function SignInForm({
             )}
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-2">
             <Checkbox
               id="sign-in-remember"
               checked={rememberMe ?? false}
@@ -171,8 +184,9 @@ export function SignInForm({
           </div>
         </CardContent>
 
-        <CardFooter className="flex flex-col space-y-4">
+        <CardFooter className="flex flex-col gap-4">
           <Button type="submit" className="w-full" disabled={isSubmitting} aria-busy={isSubmitting}>
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isSubmitting ? "Signing in..." : "Sign in"}
           </Button>
 

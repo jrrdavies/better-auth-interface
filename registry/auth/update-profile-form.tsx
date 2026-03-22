@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -57,14 +58,16 @@ export function UpdateProfileForm({ onSuccess, className }: UpdateProfileFormPro
   })
 
   // Pre-fill form when session loads
+  const userName = session.data?.user?.name
+  const userImage = session.data?.user?.image
   useEffect(() => {
-    if (session.data?.user) {
+    if (userName != null) {
       reset({
-        name: session.data.user.name,
-        image: session.data.user.image ?? "",
+        name: userName,
+        image: userImage ?? "",
       })
     }
-  }, [session.data, reset])
+  }, [userName, userImage, reset])
 
   if (!session.data && !session.isPending) {
     return (
@@ -110,7 +113,7 @@ export function UpdateProfileForm({ onSuccess, className }: UpdateProfileFormPro
         <CardTitle>Update profile</CardTitle>
         <CardDescription>Update your display name and avatar</CardDescription>
       </CardHeader>
-      <form onSubmit={(e) => void handleSubmit(onSubmit)(e)}>
+      <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-6">
         <CardContent className="space-y-4">
           {serverError && (
             <div
@@ -176,6 +179,7 @@ export function UpdateProfileForm({ onSuccess, className }: UpdateProfileFormPro
             disabled={isSubmitting || session.isPending}
             aria-busy={isSubmitting}
           >
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isSubmitting ? "Saving..." : "Save changes"}
           </Button>
         </CardFooter>

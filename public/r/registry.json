@@ -51,7 +51,16 @@
       "title": "Sign In Form",
       "description": "Email and password sign-in form with remember me and email enumeration protection.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
-      "registryDependencies": ["auth-provider", "auth-types", "auth-utils", "button", "input", "label", "checkbox", "card"],
+      "registryDependencies": [
+        "auth-provider",
+        "auth-types",
+        "auth-utils",
+        "button",
+        "input",
+        "label",
+        "checkbox",
+        "card"
+      ],
       "files": [
         {
           "path": "registry/auth/sign-in-form.tsx",
@@ -65,7 +74,15 @@
       "title": "Sign Up Form",
       "description": "Registration form with name, email, password, and confirmation.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
-      "registryDependencies": ["auth-provider", "auth-types", "auth-utils", "button", "input", "label", "card"],
+      "registryDependencies": [
+        "auth-provider",
+        "auth-types",
+        "auth-utils",
+        "button",
+        "input",
+        "label",
+        "card"
+      ],
       "files": [
         {
           "path": "registry/auth/sign-up-form.tsx",
@@ -93,7 +110,15 @@
       "title": "Reset Password Form",
       "description": "Set new password from a reset token with expired token handling.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
-      "registryDependencies": ["auth-provider", "auth-types", "auth-utils", "button", "input", "label", "card"],
+      "registryDependencies": [
+        "auth-provider",
+        "auth-types",
+        "auth-utils",
+        "button",
+        "input",
+        "label",
+        "card"
+      ],
       "files": [
         {
           "path": "registry/auth/reset-password-form.tsx",
@@ -121,7 +146,15 @@
       "title": "Change Password Form",
       "description": "Change password for authenticated users with current password verification.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
-      "registryDependencies": ["auth-provider", "auth-types", "auth-utils", "button", "input", "label", "card"],
+      "registryDependencies": [
+        "auth-provider",
+        "auth-types",
+        "auth-utils",
+        "button",
+        "input",
+        "label",
+        "card"
+      ],
       "files": [
         {
           "path": "registry/auth/change-password-form.tsx",
@@ -135,7 +168,15 @@
       "title": "Update Profile Form",
       "description": "Update display name and avatar URL for authenticated users.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
-      "registryDependencies": ["auth-provider", "auth-types", "auth-utils", "button", "input", "label", "card"],
+      "registryDependencies": [
+        "auth-provider",
+        "auth-types",
+        "auth-utils",
+        "button",
+        "input",
+        "label",
+        "card"
+      ],
       "files": [
         {
           "path": "registry/auth/update-profile-form.tsx",
@@ -164,7 +205,9 @@
       "description": "Admin user data table with pagination, search, sorting, and action dropdown.",
       "dependencies": ["@tanstack/react-table"],
       "registryDependencies": [
-        "auth-provider", "auth-types", "auth-utils",
+        "auth-provider",
+        "auth-types",
+        "auth-utils",
         "avatar",
         "badge",
         "button",
@@ -186,7 +229,16 @@
       "title": "Create User Dialog",
       "description": "Admin dialog for creating a new user with name, email, password, and role.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
-      "registryDependencies": ["auth-provider", "auth-types", "auth-utils", "button", "input", "label", "dialog", "select"],
+      "registryDependencies": [
+        "auth-provider",
+        "auth-types",
+        "auth-utils",
+        "button",
+        "input",
+        "label",
+        "dialog",
+        "select"
+      ],
       "files": [
         {
           "path": "registry/admin/create-user-dialog.tsx",
@@ -200,7 +252,16 @@
       "title": "Edit User Dialog",
       "description": "Admin dialog for editing user name, email, and role.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
-      "registryDependencies": ["auth-provider", "auth-types", "auth-utils", "button", "input", "label", "dialog", "select"],
+      "registryDependencies": [
+        "auth-provider",
+        "auth-types",
+        "auth-utils",
+        "button",
+        "input",
+        "label",
+        "dialog",
+        "select"
+      ],
       "files": [
         {
           "path": "registry/admin/edit-user-dialog.tsx",
@@ -214,7 +275,17 @@
       "title": "Ban User Dialog",
       "description": "Admin dialog for banning or unbanning a user with reason and expiry.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
-      "registryDependencies": ["auth-provider", "auth-types", "auth-utils", "button", "label", "checkbox", "textarea", "input", "dialog"],
+      "registryDependencies": [
+        "auth-provider",
+        "auth-types",
+        "auth-utils",
+        "button",
+        "label",
+        "checkbox",
+        "textarea",
+        "input",
+        "dialog"
+      ],
       "files": [
         {
           "path": "registry/admin/ban-user-dialog.tsx",
@@ -228,7 +299,15 @@
       "title": "Set Role Dialog",
       "description": "Admin dialog for changing a user's role.",
       "dependencies": [],
-      "registryDependencies": ["auth-provider", "auth-types", "auth-utils", "button", "label", "dialog", "select"],
+      "registryDependencies": [
+        "auth-provider",
+        "auth-types",
+        "auth-utils",
+        "button",
+        "label",
+        "dialog",
+        "select"
+      ],
       "files": [
         {
           "path": "registry/admin/set-role-dialog.tsx",
@@ -256,7 +335,15 @@
       "title": "Set Password Dialog",
       "description": "Admin dialog for setting a user's password.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
-      "registryDependencies": ["auth-provider", "auth-types", "auth-utils", "button", "input", "label", "dialog"],
+      "registryDependencies": [
+        "auth-provider",
+        "auth-types",
+        "auth-utils",
+        "button",
+        "input",
+        "label",
+        "dialog"
+      ],
       "files": [
         {
           "path": "registry/admin/set-password-dialog.tsx",
@@ -285,13 +372,29 @@
       "description": "Composite admin panel with stats cards, user table, and all action dialogs.",
       "dependencies": ["@tanstack/react-table", "react-hook-form", "zod", "@hookform/resolvers"],
       "registryDependencies": [
-        "auth-provider", "auth-types", "auth-utils",
-        "user-table", "create-user-dialog", "edit-user-dialog",
-        "ban-user-dialog", "set-role-dialog", "delete-user-dialog",
-        "set-password-dialog", "impersonate-button",
-        "avatar", "badge", "button", "card", "checkbox",
-        "dialog", "dropdown-menu", "input", "label",
-        "select", "table", "textarea"
+        "auth-provider",
+        "auth-types",
+        "auth-utils",
+        "user-table",
+        "create-user-dialog",
+        "edit-user-dialog",
+        "ban-user-dialog",
+        "set-role-dialog",
+        "delete-user-dialog",
+        "set-password-dialog",
+        "impersonate-button",
+        "avatar",
+        "badge",
+        "button",
+        "card",
+        "checkbox",
+        "dialog",
+        "dropdown-menu",
+        "input",
+        "label",
+        "select",
+        "table",
+        "textarea"
       ],
       "files": [
         {

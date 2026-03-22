@@ -80,6 +80,7 @@ export function VerifyEmail({ token: tokenProp, onSuccess, onError, className }:
       <CardHeader>
         {state === "loading" && (
           <>
+            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary" />
             <CardTitle aria-busy="true">Verifying your email...</CardTitle>
             <CardDescription>Please wait while we verify your email address.</CardDescription>
           </>

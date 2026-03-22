@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -93,7 +94,7 @@ export function ForgotPasswordForm({ onSuccess, redirectTo, className }: ForgotP
           Enter your email address and we&apos;ll send you a link to reset your password.
         </CardDescription>
       </CardHeader>
-      <form onSubmit={(e) => void handleSubmit(onSubmit)(e)}>
+      <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-6">
         <CardContent className="space-y-4">
           {serverError && (
             <div
@@ -127,6 +128,7 @@ export function ForgotPasswordForm({ onSuccess, redirectTo, className }: ForgotP
 
         <CardFooter>
           <Button type="submit" className="w-full" disabled={isSubmitting} aria-busy={isSubmitting}>
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isSubmitting ? "Sending..." : "Send reset link"}
           </Button>
         </CardFooter>

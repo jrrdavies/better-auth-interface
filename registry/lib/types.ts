@@ -131,7 +131,12 @@ export interface AuthClientShape {
   updateUser: (data: {
     name?: string | undefined
     image?: string | null | undefined
+    username?: string | undefined
   }) => Promise<BetterFetchResponse<{ status: boolean }>>
+  /** Check if a username is available (requires username plugin) */
+  isUsernameAvailable?: (data: {
+    username: string
+  }) => Promise<BetterFetchResponse<{ available: boolean }>>
   deleteUser: (data: {
     callbackURL?: string | undefined
     password?: string | undefined

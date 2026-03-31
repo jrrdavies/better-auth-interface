@@ -120,6 +120,11 @@ export const mockAuthClient: AuthClientShape = {
     await delay(800)
     return ok({ status: true })
   },
+  isUsernameAvailable: async ({ username }) => {
+    await delay(400)
+    const taken = ["admin", "root", "test", "alicejohnson", "bobsmith"]
+    return ok({ available: !taken.includes(username.toLowerCase()) })
+  },
   deleteUser: async ({ password }) => {
     await delay(800)
     if (password === "wrong") return err("Incorrect password")

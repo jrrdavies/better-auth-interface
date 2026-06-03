@@ -12,7 +12,7 @@
       "registryDependencies": [],
       "files": [
         {
-          "path": "registry/lib/types.ts",
+          "path": "registry/lib/auth-types.ts",
           "type": "registry:lib"
         }
       ]
@@ -26,7 +26,7 @@
       "registryDependencies": ["auth-types"],
       "files": [
         {
-          "path": "registry/lib/utils.ts",
+          "path": "registry/lib/auth-utils.ts",
           "type": "registry:lib"
         }
       ]
@@ -42,6 +42,20 @@
         {
           "path": "registry/lib/auth-provider.tsx",
           "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "use-admin-users",
+      "type": "registry:lib",
+      "title": "useAdminUsers Hook",
+      "description": "Headless state and data orchestration for composing custom user-management UIs.",
+      "dependencies": [],
+      "registryDependencies": ["auth-provider", "auth-types", "auth-utils"],
+      "files": [
+        {
+          "path": "registry/lib/use-admin-users.ts",
+          "type": "registry:lib"
         }
       ]
     },
@@ -375,6 +389,7 @@
         "auth-provider",
         "auth-types",
         "auth-utils",
+        "use-admin-users",
         "user-table",
         "create-user-dialog",
         "edit-user-dialog",

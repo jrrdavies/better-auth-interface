@@ -1,4 +1,4 @@
-import type { AuthClientShape, AdminClientShape, UserWithRole } from "@/registry/lib/types"
+import type { AuthClientShape, AdminClientShape, UserWithRole } from "@/registry/lib/auth-types"
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 

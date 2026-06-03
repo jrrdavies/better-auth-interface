@@ -19,7 +19,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { useAuthClient } from "@/registry/lib/auth-provider"
-import { getErrorMessage, isNetworkError } from "@/registry/lib/utils"
+import { getErrorMessage, isNetworkError } from "@/registry/lib/auth-utils"
 
 /** Overridable UI strings for i18n / custom copy. */
 export interface DeleteAccountDialogLabels {

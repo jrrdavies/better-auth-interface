@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { AuthProvider } from "@/registry/lib/auth-provider"
 import { mockAuthClient, mockAdminClient } from "./lib/mock-auth-client"
-import type { UserWithRole } from "@/registry/lib/types"
+import type { UserWithRole } from "@/registry/lib/auth-types"
 
 import { SignInForm } from "@/registry/auth/sign-in-form"
 import { SignUpForm } from "@/registry/auth/sign-up-form"
@@ -12,7 +12,7 @@ import { ChangePasswordForm } from "@/registry/auth/change-password-form"
 import { UpdateProfileForm } from "@/registry/auth/update-profile-form"
 import { DeleteAccountDialog } from "@/registry/auth/delete-account-dialog"
 import { AdminDashboard } from "@/registry/admin/admin-dashboard"
-import type { AdminDashboardLabels } from "@/registry/admin/admin-dashboard"
+import type { AdminDashboardLabels, AdminDialogLabels } from "@/registry/admin/admin-dashboard"
 import type { UserAction, UserTableLabels } from "@/registry/admin/user-table"
 
 type Tab = "auth" | "admin"
@@ -64,6 +64,106 @@ const NL_TABLE_LABELS: UserTableLabels = {
   next: "Volgende",
   totalUsers: (total) => `${total} gebruiker${total !== 1 ? "s" : ""} totaal`,
   pageOf: (page, totalPages) => `Pagina ${page} van ${totalPages}`,
+}
+
+const NL_DIALOG_LABELS: AdminDialogLabels = {
+  createUser: {
+    triggerText: "Gebruiker aanmaken",
+    title: "Gebruiker aanmaken",
+    description: "Voeg een nieuwe gebruiker toe.",
+    nameLabel: "Naam",
+    emailLabel: "E-mail",
+    passwordLabel: "Wachtwoord",
+    roleLabel: "Rol",
+    cancel: "Annuleren",
+    submit: "Aanmaken",
+    submitting: "Aanmaken...",
+    nameRequired: "Naam is verplicht",
+    emailRequired: "E-mail is verplicht",
+    emailInvalid: "Voer een geldig e-mailadres in",
+    passwordMin: "Wachtwoord moet minstens 8 tekens zijn",
+    roleRequired: "Rol is verplicht",
+    networkError: "Kan geen verbinding maken. Probeer opnieuw.",
+  },
+  editUser: {
+    triggerText: "Bewerken",
+    title: "Gebruiker bewerken",
+    description: (user) => `Werk de gegevens van ${user.name} bij.`,
+    nameLabel: "Naam",
+    emailLabel: "E-mail",
+    roleLabel: "Rol",
+    cancel: "Annuleren",
+    submit: "Opslaan",
+    submitting: "Opslaan...",
+    nameRequired: "Naam is verplicht",
+    emailRequired: "E-mail is verplicht",
+    emailInvalid: "Voer een geldig e-mailadres in",
+    roleRequired: "Rol is verplicht",
+    networkError: "Kan geen verbinding maken. Probeer opnieuw.",
+  },
+  setRole: {
+    triggerText: "Rol instellen",
+    title: "Rol instellen",
+    description: (user) => `Wijzig de rol voor ${user.name} (${user.email}).`,
+    roleLabel: "Rol",
+    cancel: "Annuleren",
+    submit: "Rol opslaan",
+    submitting: "Opslaan...",
+    networkError: "Kan geen verbinding maken. Probeer opnieuw.",
+  },
+  banUser: {
+    banTrigger: "Blokkeren",
+    unbanTrigger: "Deblokkeren",
+    banTitle: "Gebruiker blokkeren",
+    unbanTitle: "Gebruiker deblokkeren",
+    banDescription: (u) => `Blokkeer ${u.name} (${u.email}) van het platform.`,
+    unbanDescription: (u) => `Hef de blokkade op voor ${u.name} (${u.email}).`,
+    banReasonLabel: "Reden",
+    banReasonPlaceholder: "Reden voor blokkade (optioneel)",
+    permanentLabel: "Permanente blokkade",
+    durationLabel: "Duur (dagen)",
+    cancel: "Annuleren",
+    banSubmit: "Blokkeren",
+    banSubmitting: "Blokkeren...",
+    unbanSubmit: "Deblokkeren",
+    unbanSubmitting: "Deblokkeren...",
+    networkError: "Kan geen verbinding maken. Probeer opnieuw.",
+  },
+  deleteUser: {
+    triggerText: "Verwijderen",
+    title: "Gebruiker verwijderen",
+    description: (u) =>
+      `Weet je zeker dat je ${u.name} (${u.email}) wilt verwijderen? Dit kan niet ongedaan worden gemaakt.`,
+    cancel: "Annuleren",
+    submit: "Verwijderen",
+    submitting: "Verwijderen...",
+    networkError: "Kan geen verbinding maken. Probeer opnieuw.",
+  },
+  setPassword: {
+    triggerText: "Wachtwoord instellen",
+    title: "Wachtwoord instellen",
+    description: (u) => `Stel een nieuw wachtwoord in voor ${u.name} (${u.email}).`,
+    passwordLabel: "Nieuw wachtwoord",
+    confirmPasswordLabel: "Bevestig wachtwoord",
+    cancel: "Annuleren",
+    submit: "Instellen",
+    submitting: "Instellen...",
+    passwordMin: "Wachtwoord moet minstens 8 tekens zijn",
+    confirmRequired: "Bevestig het wachtwoord",
+    passwordsNoMatch: "Wachtwoorden komen niet overeen",
+    networkError: "Kan geen verbinding maken. Probeer opnieuw.",
+  },
+  impersonate: {
+    impersonatingBanner: (name) => (
+      <>
+        Imiteren van <strong>{name}</strong>
+      </>
+    ),
+    stop: "Stoppen",
+    stopping: "Stoppen...",
+    impersonate: (userName) => `Imiteer ${userName}`,
+    starting: "Starten...",
+  },
 }
 
 function App() {
@@ -230,6 +330,7 @@ function App() {
               canPerformAction={canPerformAction}
               labels={lang === "nl" ? NL_ADMIN_LABELS : undefined}
               tableLabels={lang === "nl" ? NL_TABLE_LABELS : undefined}
+              dialogLabels={lang === "nl" ? NL_DIALOG_LABELS : undefined}
             />
           </div>
         )}

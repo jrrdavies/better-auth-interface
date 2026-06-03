@@ -1,4 +1,4 @@
-import type { BetterFetchError } from "./types"
+import type { BetterFetchError } from "./auth-types"
 
 /**
  * Extract a human-readable error message from a Better Auth API error.

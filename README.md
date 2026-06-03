@@ -88,7 +88,8 @@ source:
 - **`searchField`** — `"email"` (default) or `"name"`.
 - **`adminRole`** / **`showStats`** — which role is counted in the "Admins" stat card, and whether the
   stat cards render.
-- **`labels`** / **`tableLabels`** — override any UI string for i18n or custom copy.
+- **`labels`** / **`tableLabels`** / **`dialogLabels`** — override any UI string for i18n or custom
+  copy (dashboard chrome, table, and the action dialogs respectively).
 
 ```tsx
 <AdminDashboard
@@ -96,10 +97,54 @@ source:
   searchField="name"
   canPerformAction={(_action, user) => currentUser.role === "super-admin" || user.role !== "admin"}
   tableLabels={{ searchPlaceholder: "Zoeken...", edit: "Bewerken" }}
+  dialogLabels={{ createUser: { triggerText: "Gebruiker aanmaken" } }}
 />
 ```
 
 Auth forms (sign-in, sign-up, etc.) accept the same `labels` prop for full i18n.
+
+### Custom layouts (composition)
+
+`AdminDashboard` is the batteries-included default. When you need your own layout — for example
+the create button in your app's page header instead of above the table — compose the primitives
+with the `useAdminUsers` hook, which owns the shared refresh signal and the active-dialog state:
+
+```tsx
+import { useAdminUsers } from "@/lib/use-admin-users"
+import { UserTable } from "@/components/user-table"
+import { CreateUserDialog } from "@/components/create-user-dialog"
+import { EditUserDialog } from "@/components/edit-user-dialog"
+
+function UsersPage() {
+  const admin = useAdminUsers({ adminRole: "admin" })
+
+  return (
+    <>
+      {/* Your own header — the create button lives wherever you want it */}
+      <PageHeader title="Users" actions={<CreateUserDialog onSuccess={admin.refresh} />} />
+
+      <UserTable
+        key={admin.refreshKey} // refetches when admin.refresh() is called
+        onEditUser={admin.setEditUser}
+        onDeleteUser={admin.setDeleteUser}
+      />
+
+      {admin.editUser && (
+        <EditUserDialog
+          user={admin.editUser}
+          open
+          onOpenChange={(open) => !open && admin.setEditUser(null)}
+          onSuccess={() => {
+            admin.setEditUser(null)
+            admin.refresh()
+          }}
+        />
+      )}
+      {/* …wire the remaining dialogs the same way */}
+    </>
+  )
+}
+```
 
 ## Components
 

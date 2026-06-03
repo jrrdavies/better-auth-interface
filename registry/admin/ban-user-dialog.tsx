@@ -179,13 +179,15 @@ export function BanUserDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        {trigger ?? (
-          <Button variant={isBanned ? "outline" : "destructive"}>
-            {isBanned ? l.unbanTrigger : l.banTrigger}
-          </Button>
-        )}
-      </DialogTrigger>
+      {(trigger !== undefined || openProp === undefined) && (
+        <DialogTrigger asChild>
+          {trigger ?? (
+            <Button variant={isBanned ? "outline" : "destructive"}>
+              {isBanned ? l.unbanTrigger : l.banTrigger}
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{isBanned ? l.unbanTitle : l.banTitle}</DialogTitle>

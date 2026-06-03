@@ -5,7 +5,7 @@
   "items": [
     {
       "name": "auth-types",
-      "type": "registry:lib",
+      "type": "registry:ui",
       "title": "Auth Types",
       "description": "Shared TypeScript types mirroring Better Auth user/session shapes.",
       "dependencies": [],
@@ -13,13 +13,13 @@
       "files": [
         {
           "path": "registry/lib/auth-types.ts",
-          "type": "registry:lib"
+          "type": "registry:ui"
         }
       ]
     },
     {
       "name": "auth-utils",
-      "type": "registry:lib",
+      "type": "registry:ui",
       "title": "Auth Utils",
       "description": "Shared utility functions for error handling and class merging.",
       "dependencies": [],
@@ -29,13 +29,13 @@
       "files": [
         {
           "path": "registry/lib/auth-utils.ts",
-          "type": "registry:lib"
+          "type": "registry:ui"
         }
       ]
     },
     {
       "name": "auth-provider",
-      "type": "registry:component",
+      "type": "registry:ui",
       "title": "Auth Provider",
       "description": "React context wrapping the Better Auth client for all components.",
       "dependencies": [],
@@ -45,13 +45,13 @@
       "files": [
         {
           "path": "registry/lib/auth-provider.tsx",
-          "type": "registry:component"
+          "type": "registry:ui"
         }
       ]
     },
     {
       "name": "use-admin-users",
-      "type": "registry:lib",
+      "type": "registry:ui",
       "title": "useAdminUsers Hook",
       "description": "Headless state and data orchestration for composing custom user-management UIs.",
       "dependencies": [],
@@ -63,13 +63,13 @@
       "files": [
         {
           "path": "registry/lib/use-admin-users.ts",
-          "type": "registry:lib"
+          "type": "registry:ui"
         }
       ]
     },
     {
       "name": "sign-in-form",
-      "type": "registry:component",
+      "type": "registry:ui",
       "title": "Sign In Form",
       "description": "Email and password sign-in form with remember me and email enumeration protection.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
@@ -86,13 +86,13 @@
       "files": [
         {
           "path": "registry/auth/sign-in-form.tsx",
-          "type": "registry:component"
+          "type": "registry:ui"
         }
       ]
     },
     {
       "name": "sign-up-form",
-      "type": "registry:component",
+      "type": "registry:ui",
       "title": "Sign Up Form",
       "description": "Registration form with name, email, password, and confirmation.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
@@ -108,13 +108,13 @@
       "files": [
         {
           "path": "registry/auth/sign-up-form.tsx",
-          "type": "registry:component"
+          "type": "registry:ui"
         }
       ]
     },
     {
       "name": "forgot-password-form",
-      "type": "registry:component",
+      "type": "registry:ui",
       "title": "Forgot Password Form",
       "description": "Request password reset email with anti-enumeration protection.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
@@ -129,13 +129,13 @@
       "files": [
         {
           "path": "registry/auth/forgot-password-form.tsx",
-          "type": "registry:component"
+          "type": "registry:ui"
         }
       ]
     },
     {
       "name": "reset-password-form",
-      "type": "registry:component",
+      "type": "registry:ui",
       "title": "Reset Password Form",
       "description": "Set new password from a reset token with expired token handling.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
@@ -151,13 +151,13 @@
       "files": [
         {
           "path": "registry/auth/reset-password-form.tsx",
-          "type": "registry:component"
+          "type": "registry:ui"
         }
       ]
     },
     {
       "name": "verify-email",
-      "type": "registry:component",
+      "type": "registry:ui",
       "title": "Verify Email",
       "description": "Email verification status display with loading, success, and error states.",
       "dependencies": [],
@@ -170,13 +170,13 @@
       "files": [
         {
           "path": "registry/auth/verify-email.tsx",
-          "type": "registry:component"
+          "type": "registry:ui"
         }
       ]
     },
     {
       "name": "change-password-form",
-      "type": "registry:component",
+      "type": "registry:ui",
       "title": "Change Password Form",
       "description": "Change password for authenticated users with current password verification.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
@@ -192,13 +192,13 @@
       "files": [
         {
           "path": "registry/auth/change-password-form.tsx",
-          "type": "registry:component"
+          "type": "registry:ui"
         }
       ]
     },
     {
       "name": "update-profile-form",
-      "type": "registry:component",
+      "type": "registry:ui",
       "title": "Update Profile Form",
       "description": "Update display name and avatar URL for authenticated users.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
@@ -214,13 +214,13 @@
       "files": [
         {
           "path": "registry/auth/update-profile-form.tsx",
-          "type": "registry:component"
+          "type": "registry:ui"
         }
       ]
     },
     {
       "name": "delete-account-dialog",
-      "type": "registry:component",
+      "type": "registry:ui",
       "title": "Delete Account Dialog",
       "description": "Account deletion dialog with confirmation step requiring DELETE or password.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
@@ -235,13 +235,13 @@
       "files": [
         {
           "path": "registry/auth/delete-account-dialog.tsx",
-          "type": "registry:component"
+          "type": "registry:ui"
         }
       ]
     },
     {
       "name": "user-table",
-      "type": "registry:component",
+      "type": "registry:ui",
       "title": "User Table",
       "description": "Admin user data table with pagination, search, sorting, and action dropdown.",
       "dependencies": ["@tanstack/react-table"],
@@ -260,13 +260,13 @@
       "files": [
         {
           "path": "registry/admin/user-table.tsx",
-          "type": "registry:component"
+          "type": "registry:ui"
         }
       ]
     },
     {
       "name": "create-user-dialog",
-      "type": "registry:component",
+      "type": "registry:ui",
       "title": "Create User Dialog",
       "description": "Admin dialog for creating a new user with name, email, password, and role.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
@@ -283,13 +283,13 @@
       "files": [
         {
           "path": "registry/admin/create-user-dialog.tsx",
-          "type": "registry:component"
+          "type": "registry:ui"
         }
       ]
     },
     {
       "name": "edit-user-dialog",
-      "type": "registry:component",
+      "type": "registry:ui",
       "title": "Edit User Dialog",
       "description": "Admin dialog for editing user name, email, and role.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
@@ -306,13 +306,13 @@
       "files": [
         {
           "path": "registry/admin/edit-user-dialog.tsx",
-          "type": "registry:component"
+          "type": "registry:ui"
         }
       ]
     },
     {
       "name": "ban-user-dialog",
-      "type": "registry:component",
+      "type": "registry:ui",
       "title": "Ban User Dialog",
       "description": "Admin dialog for banning or unbanning a user with reason and expiry.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
@@ -330,13 +330,13 @@
       "files": [
         {
           "path": "registry/admin/ban-user-dialog.tsx",
-          "type": "registry:component"
+          "type": "registry:ui"
         }
       ]
     },
     {
       "name": "set-role-dialog",
-      "type": "registry:component",
+      "type": "registry:ui",
       "title": "Set Role Dialog",
       "description": "Admin dialog for changing a user's role.",
       "dependencies": [],
@@ -352,13 +352,13 @@
       "files": [
         {
           "path": "registry/admin/set-role-dialog.tsx",
-          "type": "registry:component"
+          "type": "registry:ui"
         }
       ]
     },
     {
       "name": "delete-user-dialog",
-      "type": "registry:component",
+      "type": "registry:ui",
       "title": "Delete User Dialog",
       "description": "Admin confirmation dialog for deleting a user.",
       "dependencies": [],
@@ -372,13 +372,13 @@
       "files": [
         {
           "path": "registry/admin/delete-user-dialog.tsx",
-          "type": "registry:component"
+          "type": "registry:ui"
         }
       ]
     },
     {
       "name": "set-password-dialog",
-      "type": "registry:component",
+      "type": "registry:ui",
       "title": "Set Password Dialog",
       "description": "Admin dialog for setting a user's password.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
@@ -394,13 +394,13 @@
       "files": [
         {
           "path": "registry/admin/set-password-dialog.tsx",
-          "type": "registry:component"
+          "type": "registry:ui"
         }
       ]
     },
     {
       "name": "impersonate-button",
-      "type": "registry:component",
+      "type": "registry:ui",
       "title": "Impersonate Button",
       "description": "Button to start/stop user impersonation with persistent banner.",
       "dependencies": [],
@@ -413,13 +413,13 @@
       "files": [
         {
           "path": "registry/admin/impersonate-button.tsx",
-          "type": "registry:component"
+          "type": "registry:ui"
         }
       ]
     },
     {
       "name": "admin-dashboard",
-      "type": "registry:block",
+      "type": "registry:ui",
       "title": "Admin Dashboard",
       "description": "Composite admin panel with stats cards, user table, and all action dialogs.",
       "dependencies": ["@tanstack/react-table", "react-hook-form", "zod", "@hookform/resolvers"],
@@ -452,7 +452,7 @@
       "files": [
         {
           "path": "registry/admin/admin-dashboard.tsx",
-          "type": "registry:component"
+          "type": "registry:ui"
         }
       ]
     }

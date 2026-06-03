@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -20,17 +20,42 @@ import {
 import { useAuthClient } from "@/registry/lib/auth-provider"
 import { getErrorMessage, isNetworkError } from "@/registry/lib/utils"
 
-const resetPasswordSchema = z
-  .object({
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z.string().min(1, "Please confirm your password"),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  })
+/** Overridable UI strings for i18n / custom copy. */
+export interface ResetPasswordFormLabels {
+  title?: string
+  description?: string
+  newPasswordLabel?: string
+  confirmPasswordLabel?: string
+  submit?: string
+  submitting?: string
+  successTitle?: string
+  successDescription?: string
+  invalidTitle?: string
+  invalidDescription?: string
+  passwordMin?: string
+  confirmRequired?: string
+  passwordsNoMatch?: string
+  networkError?: string
+}
 
-type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>
+const DEFAULT_LABELS: Required<ResetPasswordFormLabels> = {
+  title: "Reset your password",
+  description: "Enter your new password below",
+  newPasswordLabel: "New password",
+  confirmPasswordLabel: "Confirm new password",
+  submit: "Reset password",
+  submitting: "Resetting...",
+  successTitle: "Password reset",
+  successDescription:
+    "Your password has been reset successfully. You can now sign in with your new password.",
+  invalidTitle: "Invalid reset link",
+  invalidDescription:
+    "This password reset link is invalid or has expired. Please request a new one.",
+  passwordMin: "Password must be at least 8 characters",
+  confirmRequired: "Please confirm your password",
+  passwordsNoMatch: "Passwords do not match",
+  networkError: "Unable to connect. Please check your internet connection and try again.",
+}
 
 /** Props for the ResetPasswordForm component */
 export interface ResetPasswordFormProps {
@@ -40,6 +65,8 @@ export interface ResetPasswordFormProps {
   onSuccess?: (() => void) | undefined
   /** URL to redirect to after successful password reset */
   redirectTo?: string | undefined
+  /** Overridable UI strings for i18n / custom copy */
+  labels?: ResetPasswordFormLabels | undefined
   /** Additional CSS classes for the root element */
   className?: string | undefined
 }
@@ -52,9 +79,11 @@ export function ResetPasswordForm({
   token: tokenProp,
   onSuccess,
   redirectTo,
+  labels,
   className,
 }: ResetPasswordFormProps) {
   const authClient = useAuthClient()
+  const l = useMemo(() => ({ ...DEFAULT_LABELS, ...labels }), [labels])
   const [serverError, setServerError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
@@ -64,6 +93,22 @@ export function ResetPasswordForm({
     (typeof window !== "undefined"
       ? new URLSearchParams(window.location.search).get("token")
       : null)
+
+  const resetPasswordSchema = useMemo(
+    () =>
+      z
+        .object({
+          password: z.string().min(8, l.passwordMin),
+          confirmPassword: z.string().min(1, l.confirmRequired),
+        })
+        .refine((data) => data.password === data.confirmPassword, {
+          message: l.passwordsNoMatch,
+          path: ["confirmPassword"],
+        }),
+    [l],
+  )
+
+  type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>
 
   const {
     register,
@@ -78,10 +123,8 @@ export function ResetPasswordForm({
     return (
       <Card className={cn("w-full max-w-md", className)}>
         <CardHeader>
-          <CardTitle>Invalid reset link</CardTitle>
-          <CardDescription>
-            This password reset link is invalid or has expired. Please request a new one.
-          </CardDescription>
+          <CardTitle>{l.invalidTitle}</CardTitle>
+          <CardDescription>{l.invalidDescription}</CardDescription>
         </CardHeader>
       </Card>
     )
@@ -96,9 +139,7 @@ export function ResetPasswordForm({
     })
 
     if (result.error) {
-      const message = isNetworkError(result.error)
-        ? "Unable to connect. Please check your internet connection and try again."
-        : getErrorMessage(result.error)
+      const message = isNetworkError(result.error) ? l.networkError : getErrorMessage(result.error)
       setServerError(message)
       return
     }
@@ -115,10 +156,8 @@ export function ResetPasswordForm({
     return (
       <Card className={cn("w-full max-w-md", className)}>
         <CardHeader>
-          <CardTitle>Password reset</CardTitle>
-          <CardDescription>
-            Your password has been reset successfully. You can now sign in with your new password.
-          </CardDescription>
+          <CardTitle>{l.successTitle}</CardTitle>
+          <CardDescription>{l.successDescription}</CardDescription>
         </CardHeader>
       </Card>
     )
@@ -127,8 +166,8 @@ export function ResetPasswordForm({
   return (
     <Card className={cn("w-full max-w-md", className)}>
       <CardHeader>
-        <CardTitle>Reset your password</CardTitle>
-        <CardDescription>Enter your new password below</CardDescription>
+        <CardTitle>{l.title}</CardTitle>
+        <CardDescription>{l.description}</CardDescription>
       </CardHeader>
       <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-6">
         <CardContent className="space-y-4">
@@ -143,7 +182,7 @@ export function ResetPasswordForm({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="reset-password">New password</Label>
+            <Label htmlFor="reset-password">{l.newPasswordLabel}</Label>
             <Input
               id="reset-password"
               type="password"
@@ -161,7 +200,7 @@ export function ResetPasswordForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="reset-confirm-password">Confirm new password</Label>
+            <Label htmlFor="reset-confirm-password">{l.confirmPasswordLabel}</Label>
             <Input
               id="reset-confirm-password"
               type="password"
@@ -182,7 +221,7 @@ export function ResetPasswordForm({
         <CardFooter>
           <Button type="submit" className="w-full" disabled={isSubmitting} aria-busy={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isSubmitting ? "Resetting..." : "Reset password"}
+            {isSubmitting ? l.submitting : l.submit}
           </Button>
         </CardFooter>
       </form>

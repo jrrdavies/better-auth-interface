@@ -1,10 +1,34 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuthClient } from "@/registry/lib/auth-provider"
 import { getErrorMessage, isNetworkError } from "@/registry/lib/utils"
+
+/** Overridable UI strings for i18n / custom copy. */
+export interface VerifyEmailLabels {
+  loadingTitle?: string
+  loadingDescription?: string
+  successTitle?: string
+  successDescription?: string
+  errorTitle?: string
+  invalidTitle?: string
+  invalidDescription?: string
+  networkError?: string
+}
+
+const DEFAULT_LABELS: Required<VerifyEmailLabels> = {
+  loadingTitle: "Verifying your email...",
+  loadingDescription: "Please wait while we verify your email address.",
+  successTitle: "Email verified",
+  successDescription: "Your email address has been verified successfully. You can now sign in.",
+  errorTitle: "Verification failed",
+  invalidTitle: "Invalid verification link",
+  invalidDescription:
+    "This verification link is invalid or has expired. Please request a new verification email.",
+  networkError: "Unable to connect. Please check your internet connection and try again.",
+}
 
 /** Props for the VerifyEmail component */
 export interface VerifyEmailProps {
@@ -14,6 +38,8 @@ export interface VerifyEmailProps {
   onSuccess?: (() => void) | undefined
   /** Callback fired when verification fails */
   onError?: ((error: Error) => void) | undefined
+  /** Overridable UI strings for i18n / custom copy */
+  labels?: VerifyEmailLabels | undefined
   /** Additional CSS classes for the root element */
   className?: string | undefined
 }
@@ -25,14 +51,23 @@ type VerifyState = "loading" | "success" | "error" | "invalid-token"
  * Reads the verification token from URL search params on mount and verifies the email.
  * Not a form — displays loading, success, or error states.
  */
-export function VerifyEmail({ token: tokenProp, onSuccess, onError, className }: VerifyEmailProps) {
+export function VerifyEmail({
+  token: tokenProp,
+  onSuccess,
+  onError,
+  labels,
+  className,
+}: VerifyEmailProps) {
   const authClient = useAuthClient()
+  const l = useMemo(() => ({ ...DEFAULT_LABELS, ...labels }), [labels])
   const [state, setState] = useState<VerifyState>("loading")
   const [errorMessage, setErrorMessage] = useState<string>("")
   const onSuccessRef = useRef(onSuccess)
   const onErrorRef = useRef(onError)
+  const networkErrorRef = useRef(l.networkError)
   onSuccessRef.current = onSuccess
   onErrorRef.current = onError
+  networkErrorRef.current = l.networkError
 
   const token =
     tokenProp ??
@@ -55,7 +90,7 @@ export function VerifyEmail({ token: tokenProp, onSuccess, onError, className }:
 
       if (result.error) {
         const message = isNetworkError(result.error)
-          ? "Unable to connect. Please check your internet connection and try again."
+          ? networkErrorRef.current
           : getErrorMessage(result.error)
         setErrorMessage(message)
         setState("error")
@@ -81,34 +116,29 @@ export function VerifyEmail({ token: tokenProp, onSuccess, onError, className }:
         {state === "loading" && (
           <>
             <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary" />
-            <CardTitle aria-busy="true">Verifying your email...</CardTitle>
-            <CardDescription>Please wait while we verify your email address.</CardDescription>
+            <CardTitle aria-busy="true">{l.loadingTitle}</CardTitle>
+            <CardDescription>{l.loadingDescription}</CardDescription>
           </>
         )}
 
         {state === "success" && (
           <>
-            <CardTitle>Email verified</CardTitle>
-            <CardDescription>
-              Your email address has been verified successfully. You can now sign in.
-            </CardDescription>
+            <CardTitle>{l.successTitle}</CardTitle>
+            <CardDescription>{l.successDescription}</CardDescription>
           </>
         )}
 
         {state === "error" && (
           <>
-            <CardTitle>Verification failed</CardTitle>
+            <CardTitle>{l.errorTitle}</CardTitle>
             <CardDescription role="alert">{errorMessage}</CardDescription>
           </>
         )}
 
         {state === "invalid-token" && (
           <>
-            <CardTitle>Invalid verification link</CardTitle>
-            <CardDescription>
-              This verification link is invalid or has expired. Please request a new verification
-              email.
-            </CardDescription>
+            <CardTitle>{l.invalidTitle}</CardTitle>
+            <CardDescription>{l.invalidDescription}</CardDescription>
           </>
         )}
       </CardHeader>

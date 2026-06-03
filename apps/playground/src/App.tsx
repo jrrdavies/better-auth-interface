@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { AuthProvider } from "@/registry/lib/auth-provider"
 import { mockAuthClient, mockAdminClient } from "./lib/mock-auth-client"
+import type { UserWithRole } from "@/registry/lib/types"
 
 import { SignInForm } from "@/registry/auth/sign-in-form"
 import { SignUpForm } from "@/registry/auth/sign-up-form"
@@ -11,6 +12,8 @@ import { ChangePasswordForm } from "@/registry/auth/change-password-form"
 import { UpdateProfileForm } from "@/registry/auth/update-profile-form"
 import { DeleteAccountDialog } from "@/registry/auth/delete-account-dialog"
 import { AdminDashboard } from "@/registry/admin/admin-dashboard"
+import type { AdminDashboardLabels } from "@/registry/admin/admin-dashboard"
+import type { UserAction, UserTableLabels } from "@/registry/admin/user-table"
 
 type Tab = "auth" | "admin"
 type AuthView =
@@ -22,10 +25,56 @@ type AuthView =
   | "change-password"
   | "update-profile"
   | "delete-account"
+type Lang = "en" | "nl"
+
+const NL_ADMIN_LABELS: AdminDashboardLabels = {
+  totalUsers: "Totaal gebruikers",
+  totalUsersDescription: "Geregistreerde accounts",
+  bannedUsers: "Geblokkeerde gebruikers",
+  bannedUsersDescription: "Momenteel geblokkeerd",
+  admins: "Beheerders",
+  adminsDescription: "Gebruikers met de admin-rol",
+  notSignedIn: "Je moet als beheerder ingelogd zijn.",
+  statsErrorTitle: "Statistieken laden mislukt",
+}
+
+const NL_TABLE_LABELS: UserTableLabels = {
+  searchPlaceholder: "Zoeken op e-mail...",
+  allRoles: "Alle rollen",
+  allStatuses: "Alle statussen",
+  active: "Actief",
+  banned: "Geblokkeerd",
+  columnUser: "Gebruiker",
+  columnRole: "Rol",
+  columnStatus: "Status",
+  columnCreated: "Aangemaakt",
+  edit: "Bewerken",
+  setRole: "Rol instellen",
+  ban: "Blokkeren",
+  unban: "Deblokkeren",
+  setPassword: "Wachtwoord instellen",
+  impersonate: "Imiteren",
+  delete: "Verwijderen",
+  loading: "Gebruikers laden...",
+  empty: "Geen gebruikers gevonden.",
+  notSignedIn: "Je moet ingelogd zijn.",
+  loadErrorTitle: "Gebruikers laden mislukt",
+  retry: "Opnieuw proberen",
+  previous: "Vorige",
+  next: "Volgende",
+  totalUsers: (total) => `${total} gebruiker${total !== 1 ? "s" : ""} totaal`,
+  pageOf: (page, totalPages) => `Pagina ${page} van ${totalPages}`,
+}
 
 function App() {
   const [tab, setTab] = useState<Tab>("auth")
   const [authView, setAuthView] = useState<AuthView>("sign-in")
+  const [lang, setLang] = useState<Lang>("en")
+  const [protectAdmins, setProtectAdmins] = useState(false)
+
+  const canPerformAction = protectAdmins
+    ? (_action: UserAction, user: UserWithRole) => user.role !== "admin"
+    : undefined
 
   return (
     <AuthProvider authClient={mockAuthClient} adminClient={mockAdminClient}>
@@ -141,7 +190,47 @@ function App() {
 
         {tab === "admin" && (
           <div className="mx-auto max-w-6xl px-6 py-8">
-            <AdminDashboard availableRoles={["user", "admin", "moderator"]} />
+            {/* Config controls — demonstrate the new configurable props live */}
+            <div className="mb-6 flex flex-wrap items-center gap-4 rounded-md border bg-muted/30 p-4 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground font-medium">labels / tableLabels:</span>
+                {(["en", "nl"] as const).map((code) => (
+                  <button
+                    key={code}
+                    onClick={() => setLang(code)}
+                    className={`rounded-md border px-2.5 py-1 uppercase transition-colors ${
+                      lang === code
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground hover:border-primary/50"
+                    }`}
+                  >
+                    {code}
+                  </button>
+                ))}
+              </div>
+              <label className="flex cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={protectAdmins}
+                  onChange={(e) => setProtectAdmins(e.target.checked)}
+                />
+                <span className="text-muted-foreground font-medium">
+                  canPerformAction: protect admin accounts (no row actions on admins)
+                </span>
+              </label>
+            </div>
+
+            <AdminDashboard
+              title={lang === "nl" ? "Gebruikersbeheer" : "User Management"}
+              description={
+                lang === "nl" ? "Beheer gebruikers en rollen" : "Manage users and permissions"
+              }
+              assignableRoles={["user", "admin", "moderator"]}
+              searchField="email"
+              canPerformAction={canPerformAction}
+              labels={lang === "nl" ? NL_ADMIN_LABELS : undefined}
+              tableLabels={lang === "nl" ? NL_TABLE_LABELS : undefined}
+            />
           </div>
         )}
       </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -20,23 +20,51 @@ import {
 import { useAuthClient } from "@/registry/lib/auth-provider"
 import { getErrorMessage, isNetworkError } from "@/registry/lib/utils"
 
-const changePasswordSchema = z
-  .object({
-    currentPassword: z.string().min(1, "Current password is required"),
-    newPassword: z.string().min(8, "New password must be at least 8 characters"),
-    confirmPassword: z.string().min(1, "Please confirm your new password"),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  })
+/** Overridable UI strings for i18n / custom copy. */
+export interface ChangePasswordFormLabels {
+  title?: string
+  description?: string
+  currentPasswordLabel?: string
+  newPasswordLabel?: string
+  confirmPasswordLabel?: string
+  submit?: string
+  submitting?: string
+  successTitle?: string
+  successDescription?: string
+  notAuthTitle?: string
+  notAuthDescription?: string
+  currentRequired?: string
+  newPasswordMin?: string
+  confirmRequired?: string
+  passwordsNoMatch?: string
+  networkError?: string
+}
 
-type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>
+const DEFAULT_LABELS: Required<ChangePasswordFormLabels> = {
+  title: "Change password",
+  description: "Enter your current password and choose a new one",
+  currentPasswordLabel: "Current password",
+  newPasswordLabel: "New password",
+  confirmPasswordLabel: "Confirm new password",
+  submit: "Change password",
+  submitting: "Changing password...",
+  successTitle: "Password changed",
+  successDescription: "Your password has been changed successfully.",
+  notAuthTitle: "Not authenticated",
+  notAuthDescription: "You must be signed in to change your password.",
+  currentRequired: "Current password is required",
+  newPasswordMin: "New password must be at least 8 characters",
+  confirmRequired: "Please confirm your new password",
+  passwordsNoMatch: "Passwords do not match",
+  networkError: "Unable to connect. Please check your internet connection and try again.",
+}
 
 /** Props for the ChangePasswordForm component */
 export interface ChangePasswordFormProps {
   /** Callback fired after successful password change */
   onSuccess?: (() => void) | undefined
+  /** Overridable UI strings for i18n / custom copy */
+  labels?: ChangePasswordFormLabels | undefined
   /** Additional CSS classes for the root element */
   className?: string | undefined
 }
@@ -45,12 +73,30 @@ export interface ChangePasswordFormProps {
  * Change password form for authenticated users.
  * Requires current password plus new password with confirmation.
  */
-export function ChangePasswordForm({ onSuccess, className }: ChangePasswordFormProps) {
+export function ChangePasswordForm({ onSuccess, labels, className }: ChangePasswordFormProps) {
   const authClient = useAuthClient()
+  const l = useMemo(() => ({ ...DEFAULT_LABELS, ...labels }), [labels])
   const [serverError, setServerError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
   const session = authClient.useSession()
+
+  const changePasswordSchema = useMemo(
+    () =>
+      z
+        .object({
+          currentPassword: z.string().min(1, l.currentRequired),
+          newPassword: z.string().min(8, l.newPasswordMin),
+          confirmPassword: z.string().min(1, l.confirmRequired),
+        })
+        .refine((data) => data.newPassword === data.confirmPassword, {
+          message: l.passwordsNoMatch,
+          path: ["confirmPassword"],
+        }),
+    [l],
+  )
+
+  type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>
 
   const {
     register,
@@ -66,8 +112,8 @@ export function ChangePasswordForm({ onSuccess, className }: ChangePasswordFormP
     return (
       <Card className={cn("w-full max-w-md", className)}>
         <CardHeader>
-          <CardTitle>Not authenticated</CardTitle>
-          <CardDescription>You must be signed in to change your password.</CardDescription>
+          <CardTitle>{l.notAuthTitle}</CardTitle>
+          <CardDescription>{l.notAuthDescription}</CardDescription>
         </CardHeader>
       </Card>
     )
@@ -83,9 +129,7 @@ export function ChangePasswordForm({ onSuccess, className }: ChangePasswordFormP
     })
 
     if (result.error) {
-      const message = isNetworkError(result.error)
-        ? "Unable to connect. Please check your internet connection and try again."
-        : getErrorMessage(result.error)
+      const message = isNetworkError(result.error) ? l.networkError : getErrorMessage(result.error)
       setServerError(message)
       return
     }
@@ -99,8 +143,8 @@ export function ChangePasswordForm({ onSuccess, className }: ChangePasswordFormP
     return (
       <Card className={cn("w-full max-w-md", className)}>
         <CardHeader>
-          <CardTitle>Password changed</CardTitle>
-          <CardDescription>Your password has been changed successfully.</CardDescription>
+          <CardTitle>{l.successTitle}</CardTitle>
+          <CardDescription>{l.successDescription}</CardDescription>
         </CardHeader>
       </Card>
     )
@@ -109,8 +153,8 @@ export function ChangePasswordForm({ onSuccess, className }: ChangePasswordFormP
   return (
     <Card className={cn("w-full max-w-md", className)}>
       <CardHeader>
-        <CardTitle>Change password</CardTitle>
-        <CardDescription>Enter your current password and choose a new one</CardDescription>
+        <CardTitle>{l.title}</CardTitle>
+        <CardDescription>{l.description}</CardDescription>
       </CardHeader>
       <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-6">
         <CardContent className="space-y-4">
@@ -125,7 +169,7 @@ export function ChangePasswordForm({ onSuccess, className }: ChangePasswordFormP
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="change-current-password">Current password</Label>
+            <Label htmlFor="change-current-password">{l.currentPasswordLabel}</Label>
             <Input
               id="change-current-password"
               type="password"
@@ -145,7 +189,7 @@ export function ChangePasswordForm({ onSuccess, className }: ChangePasswordFormP
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="change-new-password">New password</Label>
+            <Label htmlFor="change-new-password">{l.newPasswordLabel}</Label>
             <Input
               id="change-new-password"
               type="password"
@@ -163,7 +207,7 @@ export function ChangePasswordForm({ onSuccess, className }: ChangePasswordFormP
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="change-confirm-password">Confirm new password</Label>
+            <Label htmlFor="change-confirm-password">{l.confirmPasswordLabel}</Label>
             <Input
               id="change-confirm-password"
               type="password"
@@ -186,7 +230,7 @@ export function ChangePasswordForm({ onSuccess, className }: ChangePasswordFormP
         <CardFooter>
           <Button type="submit" className="w-full" disabled={isSubmitting} aria-busy={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isSubmitting ? "Changing password..." : "Change password"}
+            {isSubmitting ? l.submitting : l.submit}
           </Button>
         </CardFooter>
       </form>

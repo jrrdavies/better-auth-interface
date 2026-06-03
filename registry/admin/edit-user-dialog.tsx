@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import type { ReactNode } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -28,13 +28,40 @@ import { useAdminClient } from "@/registry/lib/auth-provider"
 import { getErrorMessage, isNetworkError } from "@/registry/lib/utils"
 import type { UserWithRole } from "@/registry/lib/types"
 
-const editUserSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().min(1, "Email is required").email("Please enter a valid email address"),
-  role: z.string().min(1, "Role is required"),
-})
+/** Overridable UI strings for i18n / custom copy. */
+export interface EditUserDialogLabels {
+  triggerText?: string
+  title?: string
+  description?: (user: UserWithRole) => string
+  nameLabel?: string
+  emailLabel?: string
+  roleLabel?: string
+  cancel?: string
+  submit?: string
+  submitting?: string
+  nameRequired?: string
+  emailRequired?: string
+  emailInvalid?: string
+  roleRequired?: string
+  networkError?: string
+}
 
-type EditUserFormValues = z.infer<typeof editUserSchema>
+const DEFAULT_LABELS: Required<EditUserDialogLabels> = {
+  triggerText: "Edit",
+  title: "Edit user",
+  description: (user) => `Update user details for ${user.name}.`,
+  nameLabel: "Name",
+  emailLabel: "Email",
+  roleLabel: "Role",
+  cancel: "Cancel",
+  submit: "Save changes",
+  submitting: "Saving...",
+  nameRequired: "Name is required",
+  emailRequired: "Email is required",
+  emailInvalid: "Please enter a valid email address",
+  roleRequired: "Role is required",
+  networkError: "Unable to connect. Please try again.",
+}
 
 /** Props for the EditUserDialog component */
 export interface EditUserDialogProps {
@@ -50,6 +77,8 @@ export interface EditUserDialogProps {
   open?: boolean | undefined
   /** Callback when open state changes */
   onOpenChange?: ((open: boolean) => void) | undefined
+  /** Overridable UI strings for i18n / custom copy */
+  labels?: EditUserDialogLabels | undefined
 }
 
 /**
@@ -62,11 +91,25 @@ export function EditUserDialog({
   roles = ["user", "admin"],
   open: openProp,
   onOpenChange,
+  labels,
 }: EditUserDialogProps) {
   const adminClient = useAdminClient()
+  const l = useMemo(() => ({ ...DEFAULT_LABELS, ...labels }), [labels])
   const [internalOpen, setInternalOpen] = useState(false)
   const isOpen = openProp ?? internalOpen
   const [serverError, setServerError] = useState<string | null>(null)
+
+  const editUserSchema = useMemo(
+    () =>
+      z.object({
+        name: z.string().min(1, l.nameRequired),
+        email: z.string().min(1, l.emailRequired).email(l.emailInvalid),
+        role: z.string().min(1, l.roleRequired),
+      }),
+    [l],
+  )
+
+  type EditUserFormValues = z.infer<typeof editUserSchema>
 
   const {
     register,
@@ -97,9 +140,7 @@ export function EditUserDialog({
     })
 
     if (result.error) {
-      const message = isNetworkError(result.error)
-        ? "Unable to connect. Please try again."
-        : getErrorMessage(result.error)
+      const message = isNetworkError(result.error) ? l.networkError : getErrorMessage(result.error)
       setServerError(message)
       return
     }
@@ -121,11 +162,13 @@ export function EditUserDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>{trigger ?? <Button variant="outline">Edit</Button>}</DialogTrigger>
+      <DialogTrigger asChild>
+        {trigger ?? <Button variant="outline">{l.triggerText}</Button>}
+      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit user</DialogTitle>
-          <DialogDescription>Update user details for {user.name}.</DialogDescription>
+          <DialogTitle>{l.title}</DialogTitle>
+          <DialogDescription>{l.description(user)}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={(e) => void handleSubmit(onSubmit)(e)}>
@@ -141,7 +184,7 @@ export function EditUserDialog({
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="edit-user-name">Name</Label>
+              <Label htmlFor="edit-user-name">{l.nameLabel}</Label>
               <Input
                 id="edit-user-name"
                 aria-describedby={errors.name ? "edit-user-name-error" : undefined}
@@ -157,7 +200,7 @@ export function EditUserDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-user-email">Email</Label>
+              <Label htmlFor="edit-user-email">{l.emailLabel}</Label>
               <Input
                 id="edit-user-email"
                 type="email"
@@ -174,7 +217,7 @@ export function EditUserDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-user-role">Role</Label>
+              <Label htmlFor="edit-user-role">{l.roleLabel}</Label>
               <Select
                 value={selectedRole}
                 onValueChange={(value) => setValue("role", value)}
@@ -201,10 +244,10 @@ export function EditUserDialog({
               onClick={() => handleOpenChange(false)}
               disabled={isSubmitting}
             >
-              Cancel
+              {l.cancel}
             </Button>
             <Button type="submit" disabled={isSubmitting} aria-busy={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Save changes"}
+              {isSubmitting ? l.submitting : l.submit}
             </Button>
           </DialogFooter>
         </form>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import type { ReactNode } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -28,14 +28,44 @@ import { useAdminClient } from "@/registry/lib/auth-provider"
 import { getErrorMessage, isNetworkError } from "@/registry/lib/utils"
 import type { UserWithRole } from "@/registry/lib/types"
 
-const createUserSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().min(1, "Email is required").email("Please enter a valid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  role: z.string().min(1, "Role is required"),
-})
+/** Overridable UI strings for i18n / custom copy. */
+export interface CreateUserDialogLabels {
+  triggerText?: string
+  title?: string
+  description?: string
+  nameLabel?: string
+  emailLabel?: string
+  passwordLabel?: string
+  roleLabel?: string
+  cancel?: string
+  submit?: string
+  submitting?: string
+  nameRequired?: string
+  emailRequired?: string
+  emailInvalid?: string
+  passwordMin?: string
+  roleRequired?: string
+  networkError?: string
+}
 
-type CreateUserFormValues = z.infer<typeof createUserSchema>
+const DEFAULT_LABELS: Required<CreateUserDialogLabels> = {
+  triggerText: "Create User",
+  title: "Create user",
+  description: "Add a new user to the system.",
+  nameLabel: "Name",
+  emailLabel: "Email",
+  passwordLabel: "Password",
+  roleLabel: "Role",
+  cancel: "Cancel",
+  submit: "Create user",
+  submitting: "Creating...",
+  nameRequired: "Name is required",
+  emailRequired: "Email is required",
+  emailInvalid: "Please enter a valid email address",
+  passwordMin: "Password must be at least 8 characters",
+  roleRequired: "Role is required",
+  networkError: "Unable to connect. Please try again.",
+}
 
 /** Props for the CreateUserDialog component */
 export interface CreateUserDialogProps {
@@ -45,6 +75,8 @@ export interface CreateUserDialogProps {
   onSuccess?: ((user: UserWithRole) => void) | undefined
   /** Available roles for the role select */
   roles?: string[] | undefined
+  /** Overridable UI strings for i18n / custom copy */
+  labels?: CreateUserDialogLabels | undefined
 }
 
 /**
@@ -54,10 +86,25 @@ export function CreateUserDialog({
   trigger,
   onSuccess,
   roles = ["user", "admin"],
+  labels,
 }: CreateUserDialogProps) {
   const adminClient = useAdminClient()
+  const l = useMemo(() => ({ ...DEFAULT_LABELS, ...labels }), [labels])
   const [open, setOpen] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
+
+  const createUserSchema = useMemo(
+    () =>
+      z.object({
+        name: z.string().min(1, l.nameRequired),
+        email: z.string().min(1, l.emailRequired).email(l.emailInvalid),
+        password: z.string().min(8, l.passwordMin),
+        role: z.string().min(1, l.roleRequired),
+      }),
+    [l],
+  )
+
+  type CreateUserFormValues = z.infer<typeof createUserSchema>
 
   const {
     register,
@@ -84,9 +131,7 @@ export function CreateUserDialog({
     })
 
     if (result.error) {
-      const message = isNetworkError(result.error)
-        ? "Unable to connect. Please try again."
-        : getErrorMessage(result.error)
+      const message = isNetworkError(result.error) ? l.networkError : getErrorMessage(result.error)
       setServerError(message)
       return
     }
@@ -108,11 +153,11 @@ export function CreateUserDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>{trigger ?? <Button>Create User</Button>}</DialogTrigger>
+      <DialogTrigger asChild>{trigger ?? <Button>{l.triggerText}</Button>}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create user</DialogTitle>
-          <DialogDescription>Add a new user to the system.</DialogDescription>
+          <DialogTitle>{l.title}</DialogTitle>
+          <DialogDescription>{l.description}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={(e) => void handleSubmit(onSubmit)(e)}>
@@ -128,7 +173,7 @@ export function CreateUserDialog({
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="create-user-name">Name</Label>
+              <Label htmlFor="create-user-name">{l.nameLabel}</Label>
               <Input
                 id="create-user-name"
                 aria-describedby={errors.name ? "create-user-name-error" : undefined}
@@ -144,7 +189,7 @@ export function CreateUserDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="create-user-email">Email</Label>
+              <Label htmlFor="create-user-email">{l.emailLabel}</Label>
               <Input
                 id="create-user-email"
                 type="email"
@@ -161,7 +206,7 @@ export function CreateUserDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="create-user-password">Password</Label>
+              <Label htmlFor="create-user-password">{l.passwordLabel}</Label>
               <Input
                 id="create-user-password"
                 type="password"
@@ -179,7 +224,7 @@ export function CreateUserDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="create-user-role">Role</Label>
+              <Label htmlFor="create-user-role">{l.roleLabel}</Label>
               <Select
                 value={selectedRole}
                 onValueChange={(value) => setValue("role", value)}
@@ -206,10 +251,10 @@ export function CreateUserDialog({
               onClick={() => handleOpenChange(false)}
               disabled={isSubmitting}
             >
-              Cancel
+              {l.cancel}
             </Button>
             <Button type="submit" disabled={isSubmitting} aria-busy={isSubmitting}>
-              {isSubmitting ? "Creating..." : "Create user"}
+              {isSubmitting ? l.submitting : l.submit}
             </Button>
           </DialogFooter>
         </form>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import type { ReactNode } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -16,6 +16,28 @@ import { useAdminClient } from "@/registry/lib/auth-provider"
 import { getErrorMessage, isNetworkError } from "@/registry/lib/utils"
 import type { UserWithRole } from "@/registry/lib/types"
 
+/** Overridable UI strings for i18n / custom copy. */
+export interface DeleteUserDialogLabels {
+  triggerText?: string
+  title?: string
+  description?: (user: UserWithRole) => string
+  cancel?: string
+  submit?: string
+  submitting?: string
+  networkError?: string
+}
+
+const DEFAULT_LABELS: Required<DeleteUserDialogLabels> = {
+  triggerText: "Delete",
+  title: "Delete user",
+  description: (user) =>
+    `Are you sure you want to delete ${user.name} (${user.email})? This action cannot be undone.`,
+  cancel: "Cancel",
+  submit: "Delete user",
+  submitting: "Deleting...",
+  networkError: "Unable to connect. Please try again.",
+}
+
 /** Props for the DeleteUserDialog component */
 export interface DeleteUserDialogProps {
   /** The user to delete */
@@ -28,6 +50,8 @@ export interface DeleteUserDialogProps {
   open?: boolean | undefined
   /** Callback when open state changes */
   onOpenChange?: ((open: boolean) => void) | undefined
+  /** Overridable UI strings for i18n / custom copy */
+  labels?: DeleteUserDialogLabels | undefined
 }
 
 /**
@@ -39,8 +63,10 @@ export function DeleteUserDialog({
   onSuccess,
   open: openProp,
   onOpenChange,
+  labels,
 }: DeleteUserDialogProps) {
   const adminClient = useAdminClient()
+  const l = useMemo(() => ({ ...DEFAULT_LABELS, ...labels }), [labels])
   const [internalOpen, setInternalOpen] = useState(false)
   const isOpen = openProp ?? internalOpen
   const [serverError, setServerError] = useState<string | null>(null)
@@ -50,12 +76,10 @@ export function DeleteUserDialog({
     setServerError(null)
     setDeleting(true)
 
-    const result = await adminClient.admin.deleteUser({ userId: user.id })
+    const result = await adminClient.admin.removeUser({ userId: user.id })
 
     if (result.error) {
-      const message = isNetworkError(result.error)
-        ? "Unable to connect. Please try again."
-        : getErrorMessage(result.error)
+      const message = isNetworkError(result.error) ? l.networkError : getErrorMessage(result.error)
       setServerError(message)
       setDeleting(false)
       return
@@ -78,15 +102,12 @@ export function DeleteUserDialog({
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        {trigger ?? <Button variant="destructive">Delete</Button>}
+        {trigger ?? <Button variant="destructive">{l.triggerText}</Button>}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Delete user</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to delete {user.name} ({user.email})? This action cannot be
-            undone.
-          </DialogDescription>
+          <DialogTitle>{l.title}</DialogTitle>
+          <DialogDescription>{l.description(user)}</DialogDescription>
         </DialogHeader>
 
         {serverError && (
@@ -106,7 +127,7 @@ export function DeleteUserDialog({
             onClick={() => handleOpenChange(false)}
             disabled={deleting}
           >
-            Cancel
+            {l.cancel}
           </Button>
           <Button
             type="button"
@@ -115,7 +136,7 @@ export function DeleteUserDialog({
             disabled={deleting}
             aria-busy={deleting}
           >
-            {deleting ? "Deleting..." : "Delete user"}
+            {deleting ? l.submitting : l.submit}
           </Button>
         </DialogFooter>
       </DialogContent>

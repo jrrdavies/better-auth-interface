@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import type { ReactNode } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -21,17 +21,36 @@ import { useAdminClient } from "@/registry/lib/auth-provider"
 import { getErrorMessage, isNetworkError } from "@/registry/lib/utils"
 import type { UserWithRole } from "@/registry/lib/types"
 
-const setPasswordSchema = z
-  .object({
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z.string().min(1, "Please confirm the password"),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  })
+/** Overridable UI strings for i18n / custom copy. */
+export interface SetPasswordDialogLabels {
+  triggerText?: string
+  title?: string
+  description?: (user: UserWithRole) => string
+  passwordLabel?: string
+  confirmPasswordLabel?: string
+  cancel?: string
+  submit?: string
+  submitting?: string
+  passwordMin?: string
+  confirmRequired?: string
+  passwordsNoMatch?: string
+  networkError?: string
+}
 
-type SetPasswordFormValues = z.infer<typeof setPasswordSchema>
+const DEFAULT_LABELS: Required<SetPasswordDialogLabels> = {
+  triggerText: "Set Password",
+  title: "Set password",
+  description: (user) => `Set a new password for ${user.name} (${user.email}).`,
+  passwordLabel: "New password",
+  confirmPasswordLabel: "Confirm password",
+  cancel: "Cancel",
+  submit: "Set password",
+  submitting: "Setting password...",
+  passwordMin: "Password must be at least 8 characters",
+  confirmRequired: "Please confirm the password",
+  passwordsNoMatch: "Passwords do not match",
+  networkError: "Unable to connect. Please try again.",
+}
 
 /** Props for the SetPasswordDialog component */
 export interface SetPasswordDialogProps {
@@ -45,6 +64,8 @@ export interface SetPasswordDialogProps {
   open?: boolean | undefined
   /** Callback when open state changes */
   onOpenChange?: ((open: boolean) => void) | undefined
+  /** Overridable UI strings for i18n / custom copy */
+  labels?: SetPasswordDialogLabels | undefined
 }
 
 /**
@@ -56,11 +77,29 @@ export function SetPasswordDialog({
   onSuccess,
   open: openProp,
   onOpenChange,
+  labels,
 }: SetPasswordDialogProps) {
   const adminClient = useAdminClient()
+  const l = useMemo(() => ({ ...DEFAULT_LABELS, ...labels }), [labels])
   const [internalOpen, setInternalOpen] = useState(false)
   const isOpen = openProp ?? internalOpen
   const [serverError, setServerError] = useState<string | null>(null)
+
+  const setPasswordSchema = useMemo(
+    () =>
+      z
+        .object({
+          password: z.string().min(8, l.passwordMin),
+          confirmPassword: z.string().min(1, l.confirmRequired),
+        })
+        .refine((data) => data.password === data.confirmPassword, {
+          message: l.passwordsNoMatch,
+          path: ["confirmPassword"],
+        }),
+    [l],
+  )
+
+  type SetPasswordFormValues = z.infer<typeof setPasswordSchema>
 
   const {
     register,
@@ -81,9 +120,7 @@ export function SetPasswordDialog({
     })
 
     if (result.error) {
-      const message = isNetworkError(result.error)
-        ? "Unable to connect. Please try again."
-        : getErrorMessage(result.error)
+      const message = isNetworkError(result.error) ? l.networkError : getErrorMessage(result.error)
       setServerError(message)
       return
     }
@@ -106,14 +143,12 @@ export function SetPasswordDialog({
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        {trigger ?? <Button variant="outline">Set Password</Button>}
+        {trigger ?? <Button variant="outline">{l.triggerText}</Button>}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Set password</DialogTitle>
-          <DialogDescription>
-            Set a new password for {user.name} ({user.email}).
-          </DialogDescription>
+          <DialogTitle>{l.title}</DialogTitle>
+          <DialogDescription>{l.description(user)}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={(e) => void handleSubmit(onSubmit)(e)}>
@@ -129,7 +164,7 @@ export function SetPasswordDialog({
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="admin-set-password">New password</Label>
+              <Label htmlFor="admin-set-password">{l.passwordLabel}</Label>
               <Input
                 id="admin-set-password"
                 type="password"
@@ -147,7 +182,7 @@ export function SetPasswordDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="admin-set-confirm-password">Confirm password</Label>
+              <Label htmlFor="admin-set-confirm-password">{l.confirmPasswordLabel}</Label>
               <Input
                 id="admin-set-confirm-password"
                 type="password"
@@ -174,10 +209,10 @@ export function SetPasswordDialog({
               onClick={() => handleOpenChange(false)}
               disabled={isSubmitting}
             >
-              Cancel
+              {l.cancel}
             </Button>
             <Button type="submit" disabled={isSubmitting} aria-busy={isSubmitting}>
-              {isSubmitting ? "Setting password..." : "Set password"}
+              {isSubmitting ? l.submitting : l.submit}
             </Button>
           </DialogFooter>
         </form>

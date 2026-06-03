@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -22,13 +22,44 @@ import { useAuthClient } from "@/registry/lib/auth-provider"
 import { getErrorMessage, isNetworkError } from "@/registry/lib/utils"
 import type { User } from "@/registry/lib/types"
 
-const signInSchema = z.object({
-  email: z.string().min(1, "Email is required").email("Please enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
-  rememberMe: z.boolean().optional(),
-})
+/** Overridable UI strings for i18n / custom copy. */
+export interface SignInFormLabels {
+  title?: string
+  description?: string
+  emailLabel?: string
+  emailPlaceholder?: string
+  passwordLabel?: string
+  forgotPassword?: string
+  rememberMe?: string
+  submit?: string
+  submitting?: string
+  noAccount?: string
+  signUp?: string
+  emailRequired?: string
+  emailInvalid?: string
+  passwordRequired?: string
+  invalidCredentials?: string
+  networkError?: string
+}
 
-type SignInFormValues = z.infer<typeof signInSchema>
+const DEFAULT_LABELS: Required<SignInFormLabels> = {
+  title: "Sign in",
+  description: "Enter your email and password to sign in to your account",
+  emailLabel: "Email",
+  emailPlaceholder: "name@example.com",
+  passwordLabel: "Password",
+  forgotPassword: "Forgot password?",
+  rememberMe: "Remember me",
+  submit: "Sign in",
+  submitting: "Signing in...",
+  noAccount: "Don't have an account?",
+  signUp: "Sign up",
+  emailRequired: "Email is required",
+  emailInvalid: "Please enter a valid email address",
+  passwordRequired: "Password is required",
+  invalidCredentials: "Invalid email or password",
+  networkError: "Unable to connect. Please check your internet connection and try again.",
+}
 
 /** Props for the SignInForm component */
 export interface SignInFormProps {
@@ -44,6 +75,8 @@ export interface SignInFormProps {
   signUpHref?: string | undefined
   /** URL for the forgot password page link */
   forgotPasswordHref?: string | undefined
+  /** Overridable UI strings for i18n / custom copy */
+  labels?: SignInFormLabels | undefined
   /** Additional CSS classes for the root element */
   className?: string | undefined
 }
@@ -59,10 +92,24 @@ export function SignInForm({
   showSignUpLink = false,
   signUpHref = "/sign-up",
   forgotPasswordHref = "/forgot-password",
+  labels,
   className,
 }: SignInFormProps) {
   const authClient = useAuthClient()
+  const l = useMemo(() => ({ ...DEFAULT_LABELS, ...labels }), [labels])
   const [serverError, setServerError] = useState<string | null>(null)
+
+  const signInSchema = useMemo(
+    () =>
+      z.object({
+        email: z.string().min(1, l.emailRequired).email(l.emailInvalid),
+        password: z.string().min(1, l.passwordRequired),
+        rememberMe: z.boolean().optional(),
+      }),
+    [l],
+  )
+
+  type SignInFormValues = z.infer<typeof signInSchema>
 
   const {
     register,
@@ -92,9 +139,7 @@ export function SignInForm({
     })
 
     if (result.error) {
-      const message = isNetworkError(result.error)
-        ? "Unable to connect. Please check your internet connection and try again."
-        : "Invalid email or password"
+      const message = isNetworkError(result.error) ? l.networkError : l.invalidCredentials
       setServerError(message)
       onError?.(new Error(getErrorMessage(result.error)))
       return
@@ -108,8 +153,8 @@ export function SignInForm({
   return (
     <Card className={cn("w-full max-w-md", className)}>
       <CardHeader>
-        <CardTitle>Sign in</CardTitle>
-        <CardDescription>Enter your email and password to sign in to your account</CardDescription>
+        <CardTitle>{l.title}</CardTitle>
+        <CardDescription>{l.description}</CardDescription>
       </CardHeader>
       <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-6">
         <CardContent className="space-y-4">
@@ -124,11 +169,11 @@ export function SignInForm({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="sign-in-email">Email</Label>
+            <Label htmlFor="sign-in-email">{l.emailLabel}</Label>
             <Input
               id="sign-in-email"
               type="email"
-              placeholder="name@example.com"
+              placeholder={l.emailPlaceholder}
               autoComplete="email"
               aria-describedby={errors.email ? "sign-in-email-error" : undefined}
               aria-invalid={!!errors.email}
@@ -144,13 +189,13 @@ export function SignInForm({
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="sign-in-password">Password</Label>
+              <Label htmlFor="sign-in-password">{l.passwordLabel}</Label>
               <a
                 href={forgotPasswordHref}
                 tabIndex={-1}
                 className="text-muted-foreground text-sm underline-offset-4 hover:text-primary hover:underline"
               >
-                Forgot password?
+                {l.forgotPassword}
               </a>
             </div>
             <Input
@@ -179,7 +224,7 @@ export function SignInForm({
               disabled={isSubmitting}
             />
             <Label htmlFor="sign-in-remember" className="cursor-pointer text-sm font-normal">
-              Remember me
+              {l.rememberMe}
             </Label>
           </div>
         </CardContent>
@@ -187,14 +232,14 @@ export function SignInForm({
         <CardFooter className="flex flex-col gap-4">
           <Button type="submit" className="w-full" disabled={isSubmitting} aria-busy={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isSubmitting ? "Signing in..." : "Sign in"}
+            {isSubmitting ? l.submitting : l.submit}
           </Button>
 
           {showSignUpLink && (
             <p className="text-muted-foreground text-center text-sm">
-              Don&apos;t have an account?{" "}
+              {l.noAccount}{" "}
               <a href={signUpHref} className="text-primary underline-offset-4 hover:underline">
-                Sign up
+                {l.signUp}
               </a>
             </p>
           )}

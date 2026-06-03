@@ -61,6 +61,9 @@ const mockUsers: UserWithRole[] = [
   },
 ]
 
+const displayOrder = ["4", "3", "1", "5", "2"]
+mockUsers.sort((a, b) => displayOrder.indexOf(a.id) - displayOrder.indexOf(b.id))
+
 const ok = <T>(data: T) => ({ data, error: null })
 const err = (message: string, status = 400) => ({
   data: null,
@@ -148,8 +151,9 @@ export const mockAuthClient: AuthClientShape = {
 
 export const mockAdminClient: AdminClientShape = {
   admin: {
-    listUsers: async (query) => {
+    listUsers: async (args) => {
       await delay(500)
+      const query = args?.query
       let filtered = [...mockUsers]
       if (query?.searchValue) {
         const search = query.searchValue.toLowerCase()
@@ -166,10 +170,16 @@ export const mockAdminClient: AdminClientShape = {
       }
       if (query?.sortBy) {
         const dir = query.sortDirection === "desc" ? -1 : 1
+        const key = query.sortBy
         filtered.sort((a, b) => {
-          const aVal = String((a as Record<string, unknown>)[query.sortBy!] ?? "")
-          const bVal = String((b as Record<string, unknown>)[query.sortBy!] ?? "")
-          return aVal.localeCompare(bVal) * dir
+          const av = (a as unknown as Record<string, unknown>)[key]
+          const bv = (b as unknown as Record<string, unknown>)[key]
+          let cmp = 0
+          if (av instanceof Date && bv instanceof Date) cmp = av.getTime() - bv.getTime()
+          else if (typeof av === "boolean" || typeof bv === "boolean")
+            cmp = (av ? 1 : 0) - (bv ? 1 : 0)
+          else cmp = String(av ?? "").localeCompare(String(bv ?? ""))
+          return cmp * dir
         })
       }
       const offset = query?.offset ?? 0
@@ -200,7 +210,7 @@ export const mockAdminClient: AdminClientShape = {
       Object.assign(user, data, { updatedAt: new Date() })
       return ok({ user })
     },
-    deleteUser: async ({ userId }) => {
+    removeUser: async ({ userId }) => {
       await delay(800)
       const idx = mockUsers.findIndex((u) => u.id === userId)
       if (idx === -1) return err("User not found", 404)
@@ -223,7 +233,7 @@ export const mockAdminClient: AdminClientShape = {
       user.banReason = null
       return ok({ user })
     },
-    setUserRole: async ({ userId, role }) => {
+    setRole: async ({ userId, role }) => {
       await delay(800)
       const user = mockUsers.find((u) => u.id === userId)
       if (!user) return err("User not found", 404)

@@ -18,8 +18,8 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { useAuthClient } from "@/registry/lib/auth-provider"
-import { getErrorMessage, isNetworkError } from "@/registry/lib/utils"
-import type { User } from "@/registry/lib/types"
+import { getErrorMessage, isNetworkError } from "@/registry/lib/auth-utils"
+import type { User } from "@/registry/lib/auth-types"
 
 /** Overridable UI strings for i18n / custom copy. */
 export interface UpdateProfileFormLabels {

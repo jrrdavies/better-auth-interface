@@ -20,8 +20,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { useAdminClient } from "@/registry/lib/auth-provider"
-import { getErrorMessage, isNetworkError } from "@/registry/lib/utils"
-import type { UserWithRole } from "@/registry/lib/types"
+import { getErrorMessage, isNetworkError } from "@/registry/lib/auth-utils"
+import type { UserWithRole } from "@/registry/lib/auth-types"
 
 const banUserSchema = z.object({
   banReason: z.string().optional(),

@@ -32,8 +32,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useAdminClient, useAuthClient } from "@/registry/lib/auth-provider"
-import { getErrorMessage } from "@/registry/lib/utils"
-import type { UserWithRole } from "@/registry/lib/types"
+import { getErrorMessage } from "@/registry/lib/auth-utils"
+import type { UserWithRole } from "@/registry/lib/auth-types"
 
 /** Row-level admin actions that can be offered per user. */
 export type UserAction = "edit" | "setRole" | "ban" | "setPassword" | "impersonate" | "delete"

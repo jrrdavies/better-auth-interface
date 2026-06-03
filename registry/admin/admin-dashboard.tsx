@@ -1,22 +1,40 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useMemo } from "react"
 import type { ReactNode } from "react"
 import { Users, ShieldAlert, Shield } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useAdminClient, useAuthClient } from "@/registry/lib/auth-provider"
-import { getErrorMessage } from "@/registry/lib/utils"
-import type { UserWithRole } from "@/registry/lib/types"
+import { useAuthClient } from "@/registry/lib/auth-provider"
+import type { UserWithRole } from "@/registry/lib/auth-types"
+import { useAdminUsers } from "@/registry/lib/use-admin-users"
 import { UserTable } from "@/registry/admin/user-table"
 import type { UserAction, UserTableLabels } from "@/registry/admin/user-table"
 import { CreateUserDialog } from "@/registry/admin/create-user-dialog"
+import type { CreateUserDialogLabels } from "@/registry/admin/create-user-dialog"
 import { EditUserDialog } from "@/registry/admin/edit-user-dialog"
+import type { EditUserDialogLabels } from "@/registry/admin/edit-user-dialog"
 import { BanUserDialog } from "@/registry/admin/ban-user-dialog"
+import type { BanUserDialogLabels } from "@/registry/admin/ban-user-dialog"
 import { SetRoleDialog } from "@/registry/admin/set-role-dialog"
+import type { SetRoleDialogLabels } from "@/registry/admin/set-role-dialog"
 import { DeleteUserDialog } from "@/registry/admin/delete-user-dialog"
+import type { DeleteUserDialogLabels } from "@/registry/admin/delete-user-dialog"
 import { SetPasswordDialog } from "@/registry/admin/set-password-dialog"
+import type { SetPasswordDialogLabels } from "@/registry/admin/set-password-dialog"
 import { ImpersonateButton } from "@/registry/admin/impersonate-button"
+import type { ImpersonateButtonLabels } from "@/registry/admin/impersonate-button"
+
+/** Labels for the admin action dialogs, forwarded to each dialog component. */
+export interface AdminDialogLabels {
+  createUser?: CreateUserDialogLabels
+  editUser?: EditUserDialogLabels
+  banUser?: BanUserDialogLabels
+  setRole?: SetRoleDialogLabels
+  deleteUser?: DeleteUserDialogLabels
+  setPassword?: SetPasswordDialogLabels
+  impersonate?: ImpersonateButtonLabels
+}
 
 /** Overridable UI strings for the dashboard chrome. */
 export interface AdminDashboardLabels {
@@ -41,7 +59,13 @@ const DEFAULT_LABELS: Required<AdminDashboardLabels> = {
   statsErrorTitle: "Failed to load stats",
 }
 
-/** Props for the AdminDashboard component */
+/**
+ * Props for the AdminDashboard component.
+ *
+ * AdminDashboard is an opinionated, batteries-included default. For custom
+ * layouts (e.g. a create button in your page header), compose the primitives
+ * yourself with the `useAdminUsers` hook + `UserTable` + the dialog components.
+ */
 export interface AdminDashboardProps {
   /** Dashboard title */
   title?: string | undefined
@@ -74,19 +98,15 @@ export interface AdminDashboardProps {
   labels?: AdminDashboardLabels | undefined
   /** Overridable strings forwarded to the user table. */
   tableLabels?: UserTableLabels | undefined
+  /** Overridable strings forwarded to the action dialogs. */
+  dialogLabels?: AdminDialogLabels | undefined
   /** Additional CSS classes */
   className?: string | undefined
 }
 
-interface Stats {
-  totalUsers: number
-  bannedUsers: number
-  adminCount: number
-}
-
 /**
  * Composite admin dashboard block with stats cards, user table,
- * and all admin action dialogs wired up.
+ * and all admin action dialogs wired up via {@link useAdminUsers}.
  */
 export function AdminDashboard({
   title = "Admin Dashboard",
@@ -100,74 +120,32 @@ export function AdminDashboard({
   createUserTrigger,
   labels,
   tableLabels,
+  dialogLabels,
   className,
 }: AdminDashboardProps) {
   const authClient = useAuthClient()
-  const adminClient = useAdminClient()
   const l = useMemo(() => ({ ...DEFAULT_LABELS, ...labels }), [labels])
   const roleFilterOptions = filterableRoles ?? assignableRoles
-
-  const [stats, setStats] = useState<Stats>({ totalUsers: 0, bannedUsers: 0, adminCount: 0 })
-  const [statsError, setStatsError] = useState<string | null>(null)
-  const [refreshKey, setRefreshKey] = useState(0)
-
-  // Active dialog state
-  const [editUser, setEditUser] = useState<UserWithRole | null>(null)
-  const [banUser, setBanUser] = useState<UserWithRole | null>(null)
-  const [roleUser, setRoleUser] = useState<UserWithRole | null>(null)
-  const [deleteUser, setDeleteUser] = useState<UserWithRole | null>(null)
-  const [passwordUser, setPasswordUser] = useState<UserWithRole | null>(null)
-  const [impersonateUser, setImpersonateUser] = useState<UserWithRole | null>(null)
-
   const session = authClient.useSession()
 
-  const refresh = useCallback(() => {
-    setRefreshKey((k) => k + 1)
-  }, [])
-
-  useEffect(() => {
-    if (!showStats) return
-
-    async function fetchStats() {
-      setStatsError(null)
-
-      const result = await adminClient.admin.listUsers({ query: { limit: 1, offset: 0 } })
-      if (result.error) {
-        setStatsError(getErrorMessage(result.error))
-        return
-      }
-
-      if (result.data) {
-        const total = result.data.total
-
-        const bannedResult = await adminClient.admin.listUsers({
-          query: {
-            filterField: "banned",
-            filterValue: true,
-            filterOperator: "eq",
-            limit: 1,
-            offset: 0,
-          },
-        })
-        const bannedCount = bannedResult.data?.total ?? 0
-
-        const adminResult = await adminClient.admin.listUsers({
-          query: {
-            filterField: "role",
-            filterValue: adminRole,
-            filterOperator: "eq",
-            limit: 1,
-            offset: 0,
-          },
-        })
-        const adminCount = adminResult.data?.total ?? 0
-
-        setStats({ totalUsers: total, bannedUsers: bannedCount, adminCount })
-      }
-    }
-
-    void fetchStats()
-  }, [adminClient, refreshKey, showStats, adminRole])
+  const {
+    refreshKey,
+    refresh,
+    stats,
+    statsError,
+    editUser,
+    setEditUser,
+    banUser,
+    setBanUser,
+    roleUser,
+    setRoleUser,
+    deleteUser,
+    setDeleteUser,
+    passwordUser,
+    setPasswordUser,
+    impersonateUser,
+    setImpersonateUser,
+  } = useAdminUsers({ adminRole, fetchStats: showStats })
 
   if (!session.data && !session.isPending) {
     return (
@@ -188,6 +166,7 @@ export function AdminDashboard({
       {impersonateUser && (
         <ImpersonateButton
           user={impersonateUser}
+          labels={dialogLabels?.impersonate}
           onImpersonateStart={refresh}
           onImpersonateStop={() => {
             setImpersonateUser(null)
@@ -245,7 +224,12 @@ export function AdminDashboard({
 
       {/* Create user button */}
       <div className="flex justify-end">
-        <CreateUserDialog roles={assignableRoles} trigger={createUserTrigger} onSuccess={refresh} />
+        <CreateUserDialog
+          roles={assignableRoles}
+          trigger={createUserTrigger}
+          labels={dialogLabels?.createUser}
+          onSuccess={refresh}
+        />
       </div>
 
       {/* User table */}
@@ -268,6 +252,7 @@ export function AdminDashboard({
         <EditUserDialog
           user={editUser}
           roles={assignableRoles}
+          labels={dialogLabels?.editUser}
           open={!!editUser}
           onOpenChange={(isOpen) => {
             if (!isOpen) setEditUser(null)
@@ -281,6 +266,7 @@ export function AdminDashboard({
       {banUser && (
         <BanUserDialog
           user={banUser}
+          labels={dialogLabels?.banUser}
           open={!!banUser}
           onOpenChange={(isOpen) => {
             if (!isOpen) setBanUser(null)
@@ -295,6 +281,7 @@ export function AdminDashboard({
         <SetRoleDialog
           user={roleUser}
           availableRoles={assignableRoles}
+          labels={dialogLabels?.setRole}
           open={!!roleUser}
           onOpenChange={(isOpen) => {
             if (!isOpen) setRoleUser(null)
@@ -308,6 +295,7 @@ export function AdminDashboard({
       {deleteUser && (
         <DeleteUserDialog
           user={deleteUser}
+          labels={dialogLabels?.deleteUser}
           open={!!deleteUser}
           onOpenChange={(isOpen) => {
             if (!isOpen) setDeleteUser(null)
@@ -321,6 +309,7 @@ export function AdminDashboard({
       {passwordUser && (
         <SetPasswordDialog
           user={passwordUser}
+          labels={dialogLabels?.setPassword}
           open={!!passwordUser}
           onOpenChange={(isOpen) => {
             if (!isOpen) setPasswordUser(null)

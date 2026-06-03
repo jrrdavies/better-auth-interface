@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuthClient } from "@/registry/lib/auth-provider"
-import { getErrorMessage, isNetworkError } from "@/registry/lib/utils"
+import { getErrorMessage, isNetworkError } from "@/registry/lib/auth-utils"
 
 /** Overridable UI strings for i18n / custom copy. */
 export interface VerifyEmailLabels {

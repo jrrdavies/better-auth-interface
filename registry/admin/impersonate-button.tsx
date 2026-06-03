@@ -5,8 +5,8 @@ import type { ReactNode } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useAdminClient, useAuthClient } from "@/registry/lib/auth-provider"
-import { getErrorMessage } from "@/registry/lib/utils"
-import type { UserWithRole } from "@/registry/lib/types"
+import { getErrorMessage } from "@/registry/lib/auth-utils"
+import type { UserWithRole } from "@/registry/lib/auth-types"
 
 /** Overridable UI strings for i18n / custom copy. */
 export interface ImpersonateButtonLabels {

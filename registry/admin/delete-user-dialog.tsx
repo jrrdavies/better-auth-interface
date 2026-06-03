@@ -101,9 +101,11 @@ export function DeleteUserDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        {trigger ?? <Button variant="destructive">{l.triggerText}</Button>}
-      </DialogTrigger>
+      {(trigger !== undefined || openProp === undefined) && (
+        <DialogTrigger asChild>
+          {trigger ?? <Button variant="destructive">{l.triggerText}</Button>}
+        </DialogTrigger>
+      )}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{l.title}</DialogTitle>

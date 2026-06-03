@@ -120,9 +120,11 @@ export function SetRoleDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        {trigger ?? <Button variant="outline">{l.triggerText}</Button>}
-      </DialogTrigger>
+      {(trigger !== undefined || openProp === undefined) && (
+        <DialogTrigger asChild>
+          {trigger ?? <Button variant="outline">{l.triggerText}</Button>}
+        </DialogTrigger>
+      )}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{l.title}</DialogTitle>

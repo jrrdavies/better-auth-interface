@@ -23,7 +23,9 @@
       "title": "Auth Utils",
       "description": "Shared utility functions for error handling and class merging.",
       "dependencies": [],
-      "registryDependencies": ["auth-types"],
+      "registryDependencies": [
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-types.json"
+      ],
       "files": [
         {
           "path": "registry/lib/auth-utils.ts",
@@ -37,7 +39,9 @@
       "title": "Auth Provider",
       "description": "React context wrapping the Better Auth client for all components.",
       "dependencies": [],
-      "registryDependencies": ["auth-types"],
+      "registryDependencies": [
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-types.json"
+      ],
       "files": [
         {
           "path": "registry/lib/auth-provider.tsx",
@@ -51,7 +55,11 @@
       "title": "useAdminUsers Hook",
       "description": "Headless state and data orchestration for composing custom user-management UIs.",
       "dependencies": [],
-      "registryDependencies": ["auth-provider", "auth-types", "auth-utils"],
+      "registryDependencies": [
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-types.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-utils.json"
+      ],
       "files": [
         {
           "path": "registry/lib/use-admin-users.ts",
@@ -66,9 +74,9 @@
       "description": "Email and password sign-in form with remember me and email enumeration protection.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
       "registryDependencies": [
-        "auth-provider",
-        "auth-types",
-        "auth-utils",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-types.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-utils.json",
         "button",
         "input",
         "label",
@@ -89,9 +97,9 @@
       "description": "Registration form with name, email, password, and confirmation.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
       "registryDependencies": [
-        "auth-provider",
-        "auth-types",
-        "auth-utils",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-types.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-utils.json",
         "button",
         "input",
         "label",
@@ -110,7 +118,14 @@
       "title": "Forgot Password Form",
       "description": "Request password reset email with anti-enumeration protection.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
-      "registryDependencies": ["auth-provider", "auth-utils", "button", "input", "label", "card"],
+      "registryDependencies": [
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-utils.json",
+        "button",
+        "input",
+        "label",
+        "card"
+      ],
       "files": [
         {
           "path": "registry/auth/forgot-password-form.tsx",
@@ -125,9 +140,9 @@
       "description": "Set new password from a reset token with expired token handling.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
       "registryDependencies": [
-        "auth-provider",
-        "auth-types",
-        "auth-utils",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-types.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-utils.json",
         "button",
         "input",
         "label",
@@ -146,7 +161,12 @@
       "title": "Verify Email",
       "description": "Email verification status display with loading, success, and error states.",
       "dependencies": [],
-      "registryDependencies": ["auth-provider", "auth-types", "auth-utils", "card"],
+      "registryDependencies": [
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-types.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-utils.json",
+        "card"
+      ],
       "files": [
         {
           "path": "registry/auth/verify-email.tsx",
@@ -161,9 +181,9 @@
       "description": "Change password for authenticated users with current password verification.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
       "registryDependencies": [
-        "auth-provider",
-        "auth-types",
-        "auth-utils",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-types.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-utils.json",
         "button",
         "input",
         "label",
@@ -183,9 +203,9 @@
       "description": "Update display name and avatar URL for authenticated users.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
       "registryDependencies": [
-        "auth-provider",
-        "auth-types",
-        "auth-utils",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-types.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-utils.json",
         "button",
         "input",
         "label",
@@ -204,7 +224,14 @@
       "title": "Delete Account Dialog",
       "description": "Account deletion dialog with confirmation step requiring DELETE or password.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
-      "registryDependencies": ["auth-provider", "auth-utils", "button", "input", "label", "dialog"],
+      "registryDependencies": [
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-utils.json",
+        "button",
+        "input",
+        "label",
+        "dialog"
+      ],
       "files": [
         {
           "path": "registry/auth/delete-account-dialog.tsx",
@@ -219,9 +246,9 @@
       "description": "Admin user data table with pagination, search, sorting, and action dropdown.",
       "dependencies": ["@tanstack/react-table"],
       "registryDependencies": [
-        "auth-provider",
-        "auth-types",
-        "auth-utils",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-types.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-utils.json",
         "avatar",
         "badge",
         "button",
@@ -244,9 +271,9 @@
       "description": "Admin dialog for creating a new user with name, email, password, and role.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
       "registryDependencies": [
-        "auth-provider",
-        "auth-types",
-        "auth-utils",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-types.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-utils.json",
         "button",
         "input",
         "label",
@@ -267,9 +294,9 @@
       "description": "Admin dialog for editing user name, email, and role.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
       "registryDependencies": [
-        "auth-provider",
-        "auth-types",
-        "auth-utils",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-types.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-utils.json",
         "button",
         "input",
         "label",
@@ -290,9 +317,9 @@
       "description": "Admin dialog for banning or unbanning a user with reason and expiry.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
       "registryDependencies": [
-        "auth-provider",
-        "auth-types",
-        "auth-utils",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-types.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-utils.json",
         "button",
         "label",
         "checkbox",
@@ -314,9 +341,9 @@
       "description": "Admin dialog for changing a user's role.",
       "dependencies": [],
       "registryDependencies": [
-        "auth-provider",
-        "auth-types",
-        "auth-utils",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-types.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-utils.json",
         "button",
         "label",
         "dialog",
@@ -335,7 +362,13 @@
       "title": "Delete User Dialog",
       "description": "Admin confirmation dialog for deleting a user.",
       "dependencies": [],
-      "registryDependencies": ["auth-provider", "auth-types", "auth-utils", "button", "dialog"],
+      "registryDependencies": [
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-types.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-utils.json",
+        "button",
+        "dialog"
+      ],
       "files": [
         {
           "path": "registry/admin/delete-user-dialog.tsx",
@@ -350,9 +383,9 @@
       "description": "Admin dialog for setting a user's password.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
       "registryDependencies": [
-        "auth-provider",
-        "auth-types",
-        "auth-utils",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-types.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-utils.json",
         "button",
         "input",
         "label",
@@ -371,7 +404,12 @@
       "title": "Impersonate Button",
       "description": "Button to start/stop user impersonation with persistent banner.",
       "dependencies": [],
-      "registryDependencies": ["auth-provider", "auth-types", "auth-utils", "button"],
+      "registryDependencies": [
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-types.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-utils.json",
+        "button"
+      ],
       "files": [
         {
           "path": "registry/admin/impersonate-button.tsx",
@@ -386,18 +424,18 @@
       "description": "Composite admin panel with stats cards, user table, and all action dialogs.",
       "dependencies": ["@tanstack/react-table", "react-hook-form", "zod", "@hookform/resolvers"],
       "registryDependencies": [
-        "auth-provider",
-        "auth-types",
-        "auth-utils",
-        "use-admin-users",
-        "user-table",
-        "create-user-dialog",
-        "edit-user-dialog",
-        "ban-user-dialog",
-        "set-role-dialog",
-        "delete-user-dialog",
-        "set-password-dialog",
-        "impersonate-button",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-types.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-utils.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/use-admin-users.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/user-table.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/create-user-dialog.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/edit-user-dialog.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/ban-user-dialog.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/set-role-dialog.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/delete-user-dialog.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/set-password-dialog.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/impersonate-button.json",
         "avatar",
         "badge",
         "button",

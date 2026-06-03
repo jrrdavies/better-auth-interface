@@ -5,7 +5,7 @@
   "description": "Shared utility functions for error handling and class merging.",
   "dependencies": [],
   "registryDependencies": [
-    "auth-types"
+    "https://jrrdavies.github.io/better-auth-interface/r/auth-types.json"
   ],
   "files": [
     {

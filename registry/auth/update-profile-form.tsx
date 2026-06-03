@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -21,17 +21,45 @@ import { useAuthClient } from "@/registry/lib/auth-provider"
 import { getErrorMessage, isNetworkError } from "@/registry/lib/utils"
 import type { User } from "@/registry/lib/types"
 
-const updateProfileSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  image: z.string().url("Please enter a valid URL").or(z.literal("")),
-})
+/** Overridable UI strings for i18n / custom copy. */
+export interface UpdateProfileFormLabels {
+  title?: string
+  description?: string
+  nameLabel?: string
+  imageLabel?: string
+  imagePlaceholder?: string
+  submit?: string
+  submitting?: string
+  successMessage?: string
+  notAuthTitle?: string
+  notAuthDescription?: string
+  nameRequired?: string
+  imageInvalid?: string
+  networkError?: string
+}
 
-type UpdateProfileFormValues = z.infer<typeof updateProfileSchema>
+const DEFAULT_LABELS: Required<UpdateProfileFormLabels> = {
+  title: "Update profile",
+  description: "Update your display name and avatar",
+  nameLabel: "Display name",
+  imageLabel: "Avatar URL",
+  imagePlaceholder: "https://example.com/avatar.jpg",
+  submit: "Save changes",
+  submitting: "Saving...",
+  successMessage: "Profile updated successfully.",
+  notAuthTitle: "Not authenticated",
+  notAuthDescription: "You must be signed in to update your profile.",
+  nameRequired: "Name is required",
+  imageInvalid: "Please enter a valid URL",
+  networkError: "Unable to connect. Please check your internet connection and try again.",
+}
 
 /** Props for the UpdateProfileForm component */
 export interface UpdateProfileFormProps {
   /** Callback fired after successful profile update */
   onSuccess?: ((user: User) => void) | undefined
+  /** Overridable UI strings for i18n / custom copy */
+  labels?: UpdateProfileFormLabels | undefined
   /** Additional CSS classes for the root element */
   className?: string | undefined
 }
@@ -40,12 +68,24 @@ export interface UpdateProfileFormProps {
  * Update profile form for authenticated users.
  * Pre-fills with the current user's display name and avatar URL.
  */
-export function UpdateProfileForm({ onSuccess, className }: UpdateProfileFormProps) {
+export function UpdateProfileForm({ onSuccess, labels, className }: UpdateProfileFormProps) {
   const authClient = useAuthClient()
+  const l = useMemo(() => ({ ...DEFAULT_LABELS, ...labels }), [labels])
   const [serverError, setServerError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
   const session = authClient.useSession()
+
+  const updateProfileSchema = useMemo(
+    () =>
+      z.object({
+        name: z.string().min(1, l.nameRequired),
+        image: z.string().url(l.imageInvalid).or(z.literal("")),
+      }),
+    [l],
+  )
+
+  type UpdateProfileFormValues = z.infer<typeof updateProfileSchema>
 
   const {
     register,
@@ -73,8 +113,8 @@ export function UpdateProfileForm({ onSuccess, className }: UpdateProfileFormPro
     return (
       <Card className={cn("w-full max-w-md", className)}>
         <CardHeader>
-          <CardTitle>Not authenticated</CardTitle>
-          <CardDescription>You must be signed in to update your profile.</CardDescription>
+          <CardTitle>{l.notAuthTitle}</CardTitle>
+          <CardDescription>{l.notAuthDescription}</CardDescription>
         </CardHeader>
       </Card>
     )
@@ -90,9 +130,7 @@ export function UpdateProfileForm({ onSuccess, className }: UpdateProfileFormPro
     })
 
     if (result.error) {
-      const message = isNetworkError(result.error)
-        ? "Unable to connect. Please check your internet connection and try again."
-        : getErrorMessage(result.error)
+      const message = isNetworkError(result.error) ? l.networkError : getErrorMessage(result.error)
       setServerError(message)
       return
     }
@@ -110,8 +148,8 @@ export function UpdateProfileForm({ onSuccess, className }: UpdateProfileFormPro
   return (
     <Card className={cn("w-full max-w-md", className)}>
       <CardHeader>
-        <CardTitle>Update profile</CardTitle>
-        <CardDescription>Update your display name and avatar</CardDescription>
+        <CardTitle>{l.title}</CardTitle>
+        <CardDescription>{l.description}</CardDescription>
       </CardHeader>
       <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-6">
         <CardContent className="space-y-4">
@@ -131,12 +169,12 @@ export function UpdateProfileForm({ onSuccess, className }: UpdateProfileFormPro
               aria-live="polite"
               className="rounded-md bg-green-500/10 p-3 text-sm text-green-600 dark:text-green-400"
             >
-              Profile updated successfully.
+              {l.successMessage}
             </div>
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="profile-name">Display name</Label>
+            <Label htmlFor="profile-name">{l.nameLabel}</Label>
             <Input
               id="profile-name"
               type="text"
@@ -154,11 +192,11 @@ export function UpdateProfileForm({ onSuccess, className }: UpdateProfileFormPro
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="profile-image">Avatar URL</Label>
+            <Label htmlFor="profile-image">{l.imageLabel}</Label>
             <Input
               id="profile-image"
               type="url"
-              placeholder="https://example.com/avatar.jpg"
+              placeholder={l.imagePlaceholder}
               aria-describedby={errors.image ? "profile-image-error" : undefined}
               aria-invalid={!!errors.image}
               disabled={isSubmitting || session.isPending}
@@ -180,7 +218,7 @@ export function UpdateProfileForm({ onSuccess, className }: UpdateProfileFormPro
             aria-busy={isSubmitting}
           >
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isSubmitting ? "Saving..." : "Save changes"}
+            {isSubmitting ? l.submitting : l.submit}
           </Button>
         </CardFooter>
       </form>

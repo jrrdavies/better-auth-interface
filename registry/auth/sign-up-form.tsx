@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -21,19 +21,55 @@ import { useAuthClient } from "@/registry/lib/auth-provider"
 import { getErrorMessage, isNetworkError } from "@/registry/lib/utils"
 import type { User } from "@/registry/lib/types"
 
-const signUpSchema = z
-  .object({
-    name: z.string().min(1, "Name is required"),
-    email: z.string().min(1, "Email is required").email("Please enter a valid email address"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z.string().min(1, "Please confirm your password"),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  })
+/** Overridable UI strings for i18n / custom copy. */
+export interface SignUpFormLabels {
+  title?: string
+  description?: string
+  nameLabel?: string
+  namePlaceholder?: string
+  emailLabel?: string
+  emailPlaceholder?: string
+  passwordLabel?: string
+  confirmPasswordLabel?: string
+  submit?: string
+  submitting?: string
+  haveAccount?: string
+  signIn?: string
+  verifyTitle?: string
+  verifyDescription?: string
+  nameRequired?: string
+  emailRequired?: string
+  emailInvalid?: string
+  passwordMin?: string
+  confirmRequired?: string
+  passwordsNoMatch?: string
+  networkError?: string
+}
 
-type SignUpFormValues = z.infer<typeof signUpSchema>
+const DEFAULT_LABELS: Required<SignUpFormLabels> = {
+  title: "Create an account",
+  description: "Enter your details to create a new account",
+  nameLabel: "Name",
+  namePlaceholder: "John Doe",
+  emailLabel: "Email",
+  emailPlaceholder: "name@example.com",
+  passwordLabel: "Password",
+  confirmPasswordLabel: "Confirm password",
+  submit: "Create account",
+  submitting: "Creating account...",
+  haveAccount: "Already have an account?",
+  signIn: "Sign in",
+  verifyTitle: "Check your email",
+  verifyDescription:
+    "We've sent a verification link to your email address. Please check your inbox and click the link to verify your account.",
+  nameRequired: "Name is required",
+  emailRequired: "Email is required",
+  emailInvalid: "Please enter a valid email address",
+  passwordMin: "Password must be at least 8 characters",
+  confirmRequired: "Please confirm your password",
+  passwordsNoMatch: "Passwords do not match",
+  networkError: "Unable to connect. Please check your internet connection and try again.",
+}
 
 /** Props for the SignUpForm component */
 export interface SignUpFormProps {
@@ -47,6 +83,8 @@ export interface SignUpFormProps {
   showSignInLink?: boolean | undefined
   /** URL for the sign-in page link */
   signInHref?: string | undefined
+  /** Overridable UI strings for i18n / custom copy */
+  labels?: SignUpFormLabels | undefined
   /** Additional CSS classes for the root element */
   className?: string | undefined
 }
@@ -60,11 +98,31 @@ export function SignUpForm({
   redirectTo,
   showSignInLink = false,
   signInHref = "/sign-in",
+  labels,
   className,
 }: SignUpFormProps) {
   const authClient = useAuthClient()
+  const l = useMemo(() => ({ ...DEFAULT_LABELS, ...labels }), [labels])
   const [serverError, setServerError] = useState<string | null>(null)
   const [emailSent, setEmailSent] = useState(false)
+
+  const signUpSchema = useMemo(
+    () =>
+      z
+        .object({
+          name: z.string().min(1, l.nameRequired),
+          email: z.string().min(1, l.emailRequired).email(l.emailInvalid),
+          password: z.string().min(8, l.passwordMin),
+          confirmPassword: z.string().min(1, l.confirmRequired),
+        })
+        .refine((data) => data.password === data.confirmPassword, {
+          message: l.passwordsNoMatch,
+          path: ["confirmPassword"],
+        }),
+    [l],
+  )
+
+  type SignUpFormValues = z.infer<typeof signUpSchema>
 
   const {
     register,
@@ -91,9 +149,7 @@ export function SignUpForm({
     })
 
     if (result.error) {
-      const message = isNetworkError(result.error)
-        ? "Unable to connect. Please check your internet connection and try again."
-        : getErrorMessage(result.error)
+      const message = isNetworkError(result.error) ? l.networkError : getErrorMessage(result.error)
       setServerError(message)
       return
     }
@@ -110,11 +166,8 @@ export function SignUpForm({
     return (
       <Card className={cn("w-full max-w-md", className)}>
         <CardHeader>
-          <CardTitle>Check your email</CardTitle>
-          <CardDescription>
-            We&apos;ve sent a verification link to your email address. Please check your inbox and
-            click the link to verify your account.
-          </CardDescription>
+          <CardTitle>{l.verifyTitle}</CardTitle>
+          <CardDescription>{l.verifyDescription}</CardDescription>
         </CardHeader>
       </Card>
     )
@@ -123,8 +176,8 @@ export function SignUpForm({
   return (
     <Card className={cn("w-full max-w-md", className)}>
       <CardHeader>
-        <CardTitle>Create an account</CardTitle>
-        <CardDescription>Enter your details to create a new account</CardDescription>
+        <CardTitle>{l.title}</CardTitle>
+        <CardDescription>{l.description}</CardDescription>
       </CardHeader>
       <form onSubmit={(e) => void handleSubmit(onSubmit)(e)} className="flex flex-col gap-6">
         <CardContent className="space-y-4">
@@ -139,11 +192,11 @@ export function SignUpForm({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="sign-up-name">Name</Label>
+            <Label htmlFor="sign-up-name">{l.nameLabel}</Label>
             <Input
               id="sign-up-name"
               type="text"
-              placeholder="John Doe"
+              placeholder={l.namePlaceholder}
               autoComplete="name"
               aria-describedby={errors.name ? "sign-up-name-error" : undefined}
               aria-invalid={!!errors.name}
@@ -158,11 +211,11 @@ export function SignUpForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="sign-up-email">Email</Label>
+            <Label htmlFor="sign-up-email">{l.emailLabel}</Label>
             <Input
               id="sign-up-email"
               type="email"
-              placeholder="name@example.com"
+              placeholder={l.emailPlaceholder}
               autoComplete="email"
               aria-describedby={errors.email ? "sign-up-email-error" : undefined}
               aria-invalid={!!errors.email}
@@ -177,7 +230,7 @@ export function SignUpForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="sign-up-password">Password</Label>
+            <Label htmlFor="sign-up-password">{l.passwordLabel}</Label>
             <Input
               id="sign-up-password"
               type="password"
@@ -195,7 +248,7 @@ export function SignUpForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="sign-up-confirm-password">Confirm password</Label>
+            <Label htmlFor="sign-up-confirm-password">{l.confirmPasswordLabel}</Label>
             <Input
               id="sign-up-confirm-password"
               type="password"
@@ -218,14 +271,14 @@ export function SignUpForm({
         <CardFooter className="flex flex-col gap-4">
           <Button type="submit" className="w-full" disabled={isSubmitting} aria-busy={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isSubmitting ? "Creating account..." : "Create account"}
+            {isSubmitting ? l.submitting : l.submit}
           </Button>
 
           {showSignInLink && (
             <p className="text-muted-foreground text-center text-sm">
-              Already have an account?{" "}
+              {l.haveAccount}{" "}
               <a href={signInHref} className="text-primary underline-offset-4 hover:underline">
-                Sign in
+                {l.signIn}
               </a>
             </p>
           )}

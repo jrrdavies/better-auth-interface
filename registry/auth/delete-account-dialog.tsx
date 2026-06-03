@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import type { ReactNode } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -21,39 +21,81 @@ import {
 import { useAuthClient } from "@/registry/lib/auth-provider"
 import { getErrorMessage, isNetworkError } from "@/registry/lib/utils"
 
+/** Overridable UI strings for i18n / custom copy. */
+export interface DeleteAccountDialogLabels {
+  triggerText?: string
+  title?: string
+  description?: string
+  passwordPrompt?: string
+  /** Prompt for the type-to-confirm flow. `{keyword}` is replaced with `confirmationKeyword`. */
+  typeToConfirmPrompt?: string
+  cancel?: string
+  submit?: string
+  submitting?: string
+  passwordRequired?: string
+  /** Error for the type-to-confirm flow. `{keyword}` is replaced with `confirmationKeyword`. */
+  typeToConfirmError?: string
+  networkError?: string
+}
+
+const DEFAULT_LABELS: Required<DeleteAccountDialogLabels> = {
+  triggerText: "Delete Account",
+  title: "Delete your account",
+  description: "This action is permanent and cannot be undone. All your data will be deleted.",
+  passwordPrompt: "Enter your password to confirm",
+  typeToConfirmPrompt: 'Type "{keyword}" to confirm',
+  cancel: "Cancel",
+  submit: "Delete account",
+  submitting: "Deleting...",
+  passwordRequired: "Password is required",
+  typeToConfirmError: 'Please type "{keyword}" to confirm',
+  networkError: "Unable to connect. Please check your internet connection and try again.",
+}
+
 /** Props for the DeleteAccountDialog component */
 export interface DeleteAccountDialogProps {
-  /** Custom trigger element. Defaults to a destructive "Delete Account" button. */
+  /** Custom trigger element. Defaults to a destructive button using `labels.triggerText`. */
   trigger?: ReactNode | undefined
   /** Callback fired after successful account deletion */
   onSuccess?: (() => void) | undefined
-  /** If true, requires the user's current password to confirm. Otherwise requires typing "DELETE". */
+  /** If true, requires the user's current password to confirm. Otherwise requires typing the keyword. */
   requirePassword?: boolean | undefined
+  /** Word the user must type to confirm (type-to-confirm flow). Defaults to "DELETE". */
+  confirmationKeyword?: string | undefined
+  /** Overridable UI strings for i18n / custom copy */
+  labels?: DeleteAccountDialogLabels | undefined
   /** Additional CSS classes for the dialog content */
   className?: string | undefined
 }
 
 /**
  * Account deletion dialog with a confirmation step.
- * Requires typing "DELETE" or entering current password to confirm (prop-controlled).
+ * Requires typing a keyword or entering the current password to confirm (prop-controlled).
  */
 export function DeleteAccountDialog({
   trigger,
   onSuccess,
   requirePassword = false,
+  confirmationKeyword = "DELETE",
+  labels,
   className,
 }: DeleteAccountDialogProps) {
   const authClient = useAuthClient()
+  const l = useMemo(() => ({ ...DEFAULT_LABELS, ...labels }), [labels])
   const [open, setOpen] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
 
-  const schema = requirePassword
-    ? z.object({ confirmation: z.string().min(1, "Password is required") })
-    : z.object({
-        confirmation: z
-          .string()
-          .refine((val) => val === "DELETE", { message: 'Please type "DELETE" to confirm' }),
-      })
+  const schema = useMemo(
+    () =>
+      requirePassword
+        ? z.object({ confirmation: z.string().min(1, l.passwordRequired) })
+        : z.object({
+            confirmation: z.string().refine((val) => val === confirmationKeyword, {
+              message: l.typeToConfirmError.replace("{keyword}", confirmationKeyword),
+            }),
+          }),
+    [requirePassword, confirmationKeyword, l],
+  )
 
   const {
     register,
@@ -73,9 +115,7 @@ export function DeleteAccountDialog({
     )
 
     if (result.error) {
-      const message = isNetworkError(result.error)
-        ? "Unable to connect. Please check your internet connection and try again."
-        : getErrorMessage(result.error)
+      const message = isNetworkError(result.error) ? l.networkError : getErrorMessage(result.error)
       setServerError(message)
       return
     }
@@ -96,14 +136,12 @@ export function DeleteAccountDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        {trigger ?? <Button variant="destructive">Delete Account</Button>}
+        {trigger ?? <Button variant="destructive">{l.triggerText}</Button>}
       </DialogTrigger>
       <DialogContent className={cn(className)}>
         <DialogHeader>
-          <DialogTitle>Delete your account</DialogTitle>
-          <DialogDescription>
-            This action is permanent and cannot be undone. All your data will be deleted.
-          </DialogDescription>
+          <DialogTitle>{l.title}</DialogTitle>
+          <DialogDescription>{l.description}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={(e) => void handleSubmit(onSubmit)(e)}>
@@ -120,7 +158,9 @@ export function DeleteAccountDialog({
 
             <div className="space-y-2">
               <Label htmlFor="delete-confirmation">
-                {requirePassword ? "Enter your password to confirm" : 'Type "DELETE" to confirm'}
+                {requirePassword
+                  ? l.passwordPrompt
+                  : l.typeToConfirmPrompt.replace("{keyword}", confirmationKeyword)}
               </Label>
               <Input
                 id="delete-confirmation"
@@ -146,7 +186,7 @@ export function DeleteAccountDialog({
               onClick={() => handleOpenChange(false)}
               disabled={isSubmitting}
             >
-              Cancel
+              {l.cancel}
             </Button>
             <Button
               type="submit"
@@ -154,7 +194,7 @@ export function DeleteAccountDialog({
               disabled={isSubmitting}
               aria-busy={isSubmitting}
             >
-              {isSubmitting ? "Deleting..." : "Delete account"}
+              {isSubmitting ? l.submitting : l.submit}
             </Button>
           </DialogFooter>
         </form>

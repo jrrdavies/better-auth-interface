@@ -53,6 +53,15 @@ export default function SignInPage() {
 
 ## Admin dashboard
 
+The admin components call Better Auth's admin plugin, so pass the admin client to the provider
+(it's the same client instance once you register the `adminClient()` plugin):
+
+```tsx
+<AuthProvider authClient={authClient} adminClient={authClient}>
+  {children}
+</AuthProvider>
+```
+
 ```bash
 npx shadcn add https://jrrdavies.github.io/better-auth-interface/r/admin-dashboard.json
 ```
@@ -61,9 +70,36 @@ npx shadcn add https://jrrdavies.github.io/better-auth-interface/r/admin-dashboa
 import { AdminDashboard } from "@/components/admin-dashboard"
 
 export default function AdminPage() {
-  return <AdminDashboard title="User Management" availableRoles={["user", "admin", "moderator"]} />
+  return <AdminDashboard title="User Management" assignableRoles={["user", "admin", "moderator"]} />
 }
 ```
+
+### Configuring the dashboard
+
+Every admin component is configured through props — you should not need to edit the generated
+source:
+
+- **`assignableRoles`** — roles offered in the create / edit / set-role dialogs.
+- **`filterableRoles`** — roles in the table's role filter (defaults to `assignableRoles`; pass `[]`
+  to hide the filter).
+- **`canPerformAction(action, user)`** — per-row gate; return `false` to hide a row action (e.g. stop
+  an admin from managing other admins). `action` is one of
+  `"edit" | "setRole" | "ban" | "setPassword" | "impersonate" | "delete"`.
+- **`searchField`** — `"email"` (default) or `"name"`.
+- **`adminRole`** / **`showStats`** — which role is counted in the "Admins" stat card, and whether the
+  stat cards render.
+- **`labels`** / **`tableLabels`** — override any UI string for i18n or custom copy.
+
+```tsx
+<AdminDashboard
+  assignableRoles={["user", "admin"]}
+  searchField="name"
+  canPerformAction={(_action, user) => currentUser.role === "super-admin" || user.role !== "admin"}
+  tableLabels={{ searchPlaceholder: "Zoeken...", edit: "Bewerken" }}
+/>
+```
+
+Auth forms (sign-in, sign-up, etc.) accept the same `labels` prop for full i18n.
 
 ## Components
 

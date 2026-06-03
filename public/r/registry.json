@@ -501,6 +501,49 @@
           "type": "registry:component"
         }
       ]
+    },
+    {
+      "name": "use-api-keys",
+      "type": "registry:lib",
+      "title": "useApiKeys Hook",
+      "description": "Headless state and data orchestration for composing custom API key management UIs.",
+      "dependencies": [],
+      "registryDependencies": [
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-types.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-utils.json"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/use-api-keys.ts",
+          "type": "registry:lib"
+        }
+      ]
+    },
+    {
+      "name": "api-key-list",
+      "type": "registry:component",
+      "title": "API Key List",
+      "description": "Self-contained table of API keys with create, details, enable/disable, and delete actions.",
+      "dependencies": [],
+      "registryDependencies": [
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-types.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/use-api-keys.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/create-api-key-dialog.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/api-key-details-dialog.json",
+        "badge",
+        "button",
+        "dialog",
+        "dropdown-menu",
+        "table"
+      ],
+      "files": [
+        {
+          "path": "registry/api-key/api-key-list.tsx",
+          "type": "registry:component"
+        }
+      ]
     }
   ]
 }

@@ -153,19 +153,41 @@ so register the `apiKey()` client plugin on your auth client. They are accessed 
 `useApiKeyClient()` hook, which throws a clear error if the plugin is missing.
 
 ```bash
-npx shadcn add https://jrrdavies.github.io/better-auth-interface/r/create-api-key-dialog.json
+npx shadcn add https://jrrdavies.github.io/better-auth-interface/r/api-key-list.json
 ```
 
 ```tsx
-import { CreateApiKeyDialog } from "@/components/create-api-key-dialog"
+import { ApiKeyList } from "@/components/api-key-list"
 
 export default function ApiKeysPage() {
-  return <CreateApiKeyDialog onSuccess={(key) => console.log("created", key)} />
+  return <ApiKeyList />
 }
 ```
 
-The full key value is shown exactly once on creation and can never be retrieved again. Expiration
-presets (`expirationOptions`) and every UI string (`labels`) are configurable.
+`ApiKeyList` is self-contained: it renders the create dialog, a per-row details dialog, and
+enable/disable and delete actions. The full key value is shown exactly once on creation and can
+never be retrieved again. Every UI string is overridable via `labels`, `formatDate` controls date
+rendering, and the create dialog's expiration presets are configurable via `expirationOptions`.
+
+For a custom layout, compose the primitives with the `useApiKeys` hook, which owns the key list,
+its loading/error state, the enable/disable and delete mutations, and the active-dialog state:
+
+```tsx
+import { useApiKeys } from "@/lib/use-api-keys"
+import { CreateApiKeyDialog } from "@/components/create-api-key-dialog"
+
+function ApiKeys() {
+  const keys = useApiKeys()
+  return (
+    <>
+      <PageHeader title="API keys" actions={<CreateApiKeyDialog onSuccess={keys.refresh} />} />
+      {keys.list.map((key) => (
+        <Row key={key.id} apiKey={key} onDisable={() => keys.toggleEnabled(key)} />
+      ))}
+    </>
+  )
+}
+```
 
 ## Components
 
@@ -191,6 +213,7 @@ presets (`expirationOptions`) and every UI string (`labels`) are configurable.
 | `admin-dashboard`        | Composite admin panel with all components     | Admin           |
 | `create-api-key-dialog`  | Create an API key, shown once on creation     | API Key         |
 | `api-key-details-dialog` | View metadata and edit name/enabled state     | API Key         |
+| `api-key-list`           | Table of API keys with create/disable/delete  | API Key         |
 
 ## How it works
 

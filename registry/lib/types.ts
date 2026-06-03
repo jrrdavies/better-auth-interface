@@ -147,7 +147,7 @@ export interface AuthClientShape {
 /** Admin client methods provided by the Better Auth admin plugin */
 export interface AdminClientShape {
   admin: {
-    listUsers: (
+    listUsers: (args?: {
       query?:
         | {
             searchValue?: string | undefined
@@ -161,8 +161,8 @@ export interface AdminClientShape {
             filterValue?: string | number | boolean | undefined
             filterOperator?: string | undefined
           }
-        | undefined,
-    ) => Promise<BetterFetchResponse<{ users: UserWithRole[]; total: number }>>
+        | undefined
+    }) => Promise<BetterFetchResponse<{ users: UserWithRole[]; total: number }>>
     createUser: (data: {
       email: string
       name: string
@@ -174,14 +174,14 @@ export interface AdminClientShape {
       userId: string
       data: Record<string, unknown>
     }) => Promise<BetterFetchResponse<{ user: UserWithRole }>>
-    deleteUser: (data: { userId: string }) => Promise<BetterFetchResponse<{ success: boolean }>>
+    removeUser: (data: { userId: string }) => Promise<BetterFetchResponse<{ success: boolean }>>
     banUser: (data: {
       userId: string
       banReason?: string | undefined
       banExpiresIn?: number | undefined
     }) => Promise<BetterFetchResponse<{ user: UserWithRole }>>
     unbanUser: (data: { userId: string }) => Promise<BetterFetchResponse<{ user: UserWithRole }>>
-    setUserRole: (data: {
+    setRole: (data: {
       userId: string
       role: string
     }) => Promise<BetterFetchResponse<{ user: UserWithRole }>>

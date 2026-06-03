@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import type { ReactNode } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -35,6 +35,45 @@ interface BanUserFormValues {
   permanent?: boolean | undefined
 }
 
+/** Overridable UI strings for i18n / custom copy. */
+export interface BanUserDialogLabels {
+  banTrigger?: string
+  unbanTrigger?: string
+  banTitle?: string
+  unbanTitle?: string
+  banDescription?: (user: UserWithRole) => string
+  unbanDescription?: (user: UserWithRole) => string
+  banReasonLabel?: string
+  banReasonPlaceholder?: string
+  permanentLabel?: string
+  durationLabel?: string
+  cancel?: string
+  banSubmit?: string
+  banSubmitting?: string
+  unbanSubmit?: string
+  unbanSubmitting?: string
+  networkError?: string
+}
+
+const DEFAULT_LABELS: Required<BanUserDialogLabels> = {
+  banTrigger: "Ban",
+  unbanTrigger: "Unban",
+  banTitle: "Ban user",
+  unbanTitle: "Unban user",
+  banDescription: (user) => `Ban ${user.name} (${user.email}) from the platform.`,
+  unbanDescription: (user) => `Remove the ban on ${user.name} (${user.email}).`,
+  banReasonLabel: "Ban reason",
+  banReasonPlaceholder: "Reason for ban (optional)",
+  permanentLabel: "Permanent ban",
+  durationLabel: "Ban duration (days)",
+  cancel: "Cancel",
+  banSubmit: "Ban user",
+  banSubmitting: "Banning...",
+  unbanSubmit: "Unban user",
+  unbanSubmitting: "Unbanning...",
+  networkError: "Unable to connect. Please try again.",
+}
+
 /** Props for the BanUserDialog component */
 export interface BanUserDialogProps {
   /** The user to ban or unban */
@@ -47,6 +86,8 @@ export interface BanUserDialogProps {
   open?: boolean | undefined
   /** Callback when open state changes */
   onOpenChange?: ((open: boolean) => void) | undefined
+  /** Overridable UI strings for i18n / custom copy */
+  labels?: BanUserDialogLabels | undefined
 }
 
 /**
@@ -59,8 +100,10 @@ export function BanUserDialog({
   onSuccess,
   open: openProp,
   onOpenChange,
+  labels,
 }: BanUserDialogProps) {
   const adminClient = useAdminClient()
+  const l = useMemo(() => ({ ...DEFAULT_LABELS, ...labels }), [labels])
   const [internalOpen, setInternalOpen] = useState(false)
   const isOpen = openProp ?? internalOpen
   const [serverError, setServerError] = useState<string | null>(null)
@@ -93,9 +136,7 @@ export function BanUserDialog({
     })
 
     if (result.error) {
-      const message = isNetworkError(result.error)
-        ? "Unable to connect. Please try again."
-        : getErrorMessage(result.error)
+      const message = isNetworkError(result.error) ? l.networkError : getErrorMessage(result.error)
       setServerError(message)
       return
     }
@@ -113,9 +154,7 @@ export function BanUserDialog({
     const result = await adminClient.admin.unbanUser({ userId: user.id })
 
     if (result.error) {
-      const message = isNetworkError(result.error)
-        ? "Unable to connect. Please try again."
-        : getErrorMessage(result.error)
+      const message = isNetworkError(result.error) ? l.networkError : getErrorMessage(result.error)
       setServerError(message)
       setUnbanning(false)
       return
@@ -143,17 +182,15 @@ export function BanUserDialog({
       <DialogTrigger asChild>
         {trigger ?? (
           <Button variant={isBanned ? "outline" : "destructive"}>
-            {isBanned ? "Unban" : "Ban"}
+            {isBanned ? l.unbanTrigger : l.banTrigger}
           </Button>
         )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{isBanned ? "Unban" : "Ban"} user</DialogTitle>
+          <DialogTitle>{isBanned ? l.unbanTitle : l.banTitle}</DialogTitle>
           <DialogDescription>
-            {isBanned
-              ? `Remove the ban on ${user.name} (${user.email}).`
-              : `Ban ${user.name} (${user.email}) from the platform.`}
+            {isBanned ? l.unbanDescription(user) : l.banDescription(user)}
           </DialogDescription>
         </DialogHeader>
 
@@ -175,7 +212,7 @@ export function BanUserDialog({
               onClick={() => handleOpenChange(false)}
               disabled={unbanning}
             >
-              Cancel
+              {l.cancel}
             </Button>
             <Button
               type="button"
@@ -183,17 +220,17 @@ export function BanUserDialog({
               disabled={unbanning}
               aria-busy={unbanning}
             >
-              {unbanning ? "Unbanning..." : "Unban user"}
+              {unbanning ? l.unbanSubmitting : l.unbanSubmit}
             </Button>
           </DialogFooter>
         ) : (
           <form onSubmit={(e) => void handleSubmit(onBan)(e)}>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="ban-reason">Ban reason</Label>
+                <Label htmlFor="ban-reason">{l.banReasonLabel}</Label>
                 <Textarea
                   id="ban-reason"
-                  placeholder="Reason for ban (optional)"
+                  placeholder={l.banReasonPlaceholder}
                   disabled={isSubmitting}
                   {...register("banReason")}
                 />
@@ -209,13 +246,13 @@ export function BanUserDialog({
                   disabled={isSubmitting}
                 />
                 <Label htmlFor="ban-permanent" className="cursor-pointer text-sm font-normal">
-                  Permanent ban
+                  {l.permanentLabel}
                 </Label>
               </div>
 
               {!permanent && (
                 <div className="space-y-2">
-                  <Label htmlFor="ban-expires">Ban duration (days)</Label>
+                  <Label htmlFor="ban-expires">{l.durationLabel}</Label>
                   <Input
                     id="ban-expires"
                     type="number"
@@ -241,7 +278,7 @@ export function BanUserDialog({
                 onClick={() => handleOpenChange(false)}
                 disabled={isSubmitting}
               >
-                Cancel
+                {l.cancel}
               </Button>
               <Button
                 type="submit"
@@ -249,7 +286,7 @@ export function BanUserDialog({
                 disabled={isSubmitting}
                 aria-busy={isSubmitting}
               >
-                {isSubmitting ? "Banning..." : "Ban user"}
+                {isSubmitting ? l.banSubmitting : l.banSubmit}
               </Button>
             </DialogFooter>
           </form>

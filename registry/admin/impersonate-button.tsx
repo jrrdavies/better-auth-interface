@@ -1,11 +1,34 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
+import type { ReactNode } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useAdminClient, useAuthClient } from "@/registry/lib/auth-provider"
 import { getErrorMessage } from "@/registry/lib/utils"
 import type { UserWithRole } from "@/registry/lib/types"
+
+/** Overridable UI strings for i18n / custom copy. */
+export interface ImpersonateButtonLabels {
+  /** Banner text while impersonating. `name` is the impersonated user's name node. */
+  impersonatingBanner?: (name: ReactNode) => ReactNode
+  stop?: string
+  stopping?: string
+  impersonate?: (userName: string) => string
+  starting?: string
+}
+
+const DEFAULT_LABELS: Required<ImpersonateButtonLabels> = {
+  impersonatingBanner: (name) => (
+    <>
+      Impersonating <strong>{name}</strong>
+    </>
+  ),
+  stop: "Stop",
+  stopping: "Stopping...",
+  impersonate: (userName) => `Impersonate ${userName}`,
+  starting: "Starting...",
+}
 
 /** Props for the ImpersonateButton component */
 export interface ImpersonateButtonProps {
@@ -15,6 +38,8 @@ export interface ImpersonateButtonProps {
   onImpersonateStart?: (() => void) | undefined
   /** Callback fired when impersonation stops */
   onImpersonateStop?: (() => void) | undefined
+  /** Overridable UI strings for i18n / custom copy */
+  labels?: ImpersonateButtonLabels | undefined
   /** Additional CSS classes */
   className?: string | undefined
 }
@@ -28,10 +53,12 @@ export function ImpersonateButton({
   user,
   onImpersonateStart,
   onImpersonateStop,
+  labels,
   className,
 }: ImpersonateButtonProps) {
   const authClient = useAuthClient()
   const adminClient = useAdminClient()
+  const l = useMemo(() => ({ ...DEFAULT_LABELS, ...labels }), [labels])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -80,16 +107,14 @@ export function ImpersonateButton({
         role="status"
         aria-live="polite"
       >
-        <span>
-          Impersonating <strong>{session.data?.user.name}</strong>
-        </span>
+        <span>{l.impersonatingBanner(session.data?.user.name)}</span>
         <Button
           variant="outline"
           size="sm"
           onClick={() => void handleStopImpersonating()}
           disabled={loading}
         >
-          {loading ? "Stopping..." : "Stop"}
+          {loading ? l.stopping : l.stop}
         </Button>
         {error && <span className="text-destructive text-xs">{error}</span>}
       </div>
@@ -105,7 +130,7 @@ export function ImpersonateButton({
         disabled={loading}
         aria-busy={loading}
       >
-        {loading ? "Starting..." : `Impersonate ${user.name}`}
+        {loading ? l.starting : l.impersonate(user.name)}
       </Button>
       {error && (
         <p className="text-destructive mt-1 text-xs" role="alert">

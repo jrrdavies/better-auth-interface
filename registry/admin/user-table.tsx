@@ -1,9 +1,9 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import type { ColumnDef, SortingState } from "@tanstack/react-table"
-import { MoreHorizontal } from "lucide-react"
+import { ChevronDown, ChevronsUpDown, ChevronUp, MoreHorizontal } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -35,14 +35,84 @@ import { useAdminClient, useAuthClient } from "@/registry/lib/auth-provider"
 import { getErrorMessage } from "@/registry/lib/utils"
 import type { UserWithRole } from "@/registry/lib/types"
 
+/** Row-level admin actions that can be offered per user. */
+export type UserAction = "edit" | "setRole" | "ban" | "setPassword" | "impersonate" | "delete"
+
+/** Overridable UI strings (for i18n / custom copy). */
+export interface UserTableLabels {
+  searchPlaceholder?: string
+  allRoles?: string
+  allStatuses?: string
+  active?: string
+  banned?: string
+  columnUser?: string
+  columnRole?: string
+  columnStatus?: string
+  columnCreated?: string
+  edit?: string
+  setRole?: string
+  ban?: string
+  unban?: string
+  setPassword?: string
+  impersonate?: string
+  delete?: string
+  loading?: string
+  empty?: string
+  notSignedIn?: string
+  loadErrorTitle?: string
+  retry?: string
+  previous?: string
+  next?: string
+  totalUsers?: (total: number) => string
+  pageOf?: (page: number, totalPages: number) => string
+}
+
+const DEFAULT_LABELS: Required<UserTableLabels> = {
+  searchPlaceholder: "Search...",
+  allRoles: "All roles",
+  allStatuses: "All statuses",
+  active: "Active",
+  banned: "Banned",
+  columnUser: "User",
+  columnRole: "Role",
+  columnStatus: "Status",
+  columnCreated: "Created",
+  edit: "Edit",
+  setRole: "Set Role",
+  ban: "Ban",
+  unban: "Unban",
+  setPassword: "Set Password",
+  impersonate: "Impersonate",
+  delete: "Delete",
+  loading: "Loading users...",
+  empty: "No users found.",
+  notSignedIn: "You must be signed in to access the admin panel.",
+  loadErrorTitle: "Failed to load users",
+  retry: "Retry",
+  previous: "Previous",
+  next: "Next",
+  totalUsers: (total) => `${total} user${total !== 1 ? "s" : ""} total`,
+  pageOf: (page, totalPages) => `Page ${page} of ${totalPages}`,
+}
+
 /** Props for the UserTable component */
 export interface UserTableProps {
   /** Number of users per page */
   pageSize?: number | undefined
   /** Callback when a user row is clicked */
   onUserClick?: ((user: UserWithRole) => void) | undefined
-  /** Available roles for filtering */
-  availableRoles?: string[] | undefined
+  /**
+   * Roles offered in the role filter dropdown. When omitted or empty,
+   * the role filter is hidden entirely.
+   */
+  filterableRoles?: string[] | undefined
+  /** Which user field the search box queries. Defaults to "email". */
+  searchField?: "name" | "email" | undefined
+  /**
+   * Per-row gate deciding whether a given action is available for a user.
+   * Return `false` to hide the action for that row. Defaults to allowing all.
+   */
+  canPerformAction?: ((action: UserAction, user: UserWithRole) => boolean) | undefined
   /** Callback to open the edit user dialog */
   onEditUser?: ((user: UserWithRole) => void) | undefined
   /** Callback to open the set role dialog */
@@ -55,6 +125,8 @@ export interface UserTableProps {
   onImpersonate?: ((user: UserWithRole) => void) | undefined
   /** Callback to open the delete user dialog */
   onDeleteUser?: ((user: UserWithRole) => void) | undefined
+  /** Overridable UI strings for i18n / custom copy */
+  labels?: UserTableLabels | undefined
   /** Additional CSS classes for the root element */
   className?: string | undefined
 }
@@ -75,17 +147,21 @@ function getInitials(name: string): string {
 export function UserTable({
   pageSize = 20,
   onUserClick,
-  availableRoles = ["user", "admin"],
+  filterableRoles,
+  searchField = "email",
+  canPerformAction,
   onEditUser,
   onSetRole,
   onBanUser,
   onSetPassword,
   onImpersonate,
   onDeleteUser,
+  labels,
   className,
 }: UserTableProps) {
   const authClient = useAuthClient()
   const adminClient = useAdminClient()
+  const l = useMemo(() => ({ ...DEFAULT_LABELS, ...labels }), [labels])
 
   const [users, setUsers] = useState<UserWithRole[]>([])
   const [total, setTotal] = useState(0)
@@ -98,6 +174,13 @@ export function UserTable({
   const [error, setError] = useState<string | null>(null)
 
   const session = authClient.useSession()
+  const showRoleFilter = !!filterableRoles && filterableRoles.length > 0
+
+  const can = useCallback(
+    (action: UserAction, user: UserWithRole) =>
+      canPerformAction ? canPerformAction(action, user) : true,
+    [canPerformAction],
+  )
 
   const fetchUsers = useCallback(async () => {
     setLoading(true)
@@ -105,21 +188,23 @@ export function UserTable({
 
     const sortCol = sorting[0]
     const result = await adminClient.admin.listUsers({
-      limit: pageSize,
-      offset: page * pageSize,
-      searchValue: search || undefined,
-      searchField: search ? "email" : undefined,
-      searchOperator: search ? "contains" : undefined,
-      sortBy: sortCol?.id,
-      sortDirection: sortCol?.desc ? "desc" : "asc",
-      filterField: roleFilter !== "all" ? "role" : banFilter !== "all" ? "banned" : undefined,
-      filterValue:
-        roleFilter !== "all"
-          ? roleFilter
-          : banFilter !== "all"
-            ? banFilter === "banned"
-            : undefined,
-      filterOperator: roleFilter !== "all" || banFilter !== "all" ? "eq" : undefined,
+      query: {
+        limit: pageSize,
+        offset: page * pageSize,
+        searchValue: search || undefined,
+        searchField: search ? searchField : undefined,
+        searchOperator: search ? "contains" : undefined,
+        sortBy: sortCol?.id,
+        sortDirection: sortCol?.desc ? "desc" : "asc",
+        filterField: roleFilter !== "all" ? "role" : banFilter !== "all" ? "banned" : undefined,
+        filterValue:
+          roleFilter !== "all"
+            ? roleFilter
+            : banFilter !== "all"
+              ? banFilter === "banned"
+              : undefined,
+        filterOperator: roleFilter !== "all" || banFilter !== "all" ? "eq" : undefined,
+      },
     })
 
     if (result.error) {
@@ -133,7 +218,7 @@ export function UserTable({
       setTotal(result.data.total)
     }
     setLoading(false)
-  }, [adminClient, page, pageSize, search, sorting, roleFilter, banFilter])
+  }, [adminClient, page, pageSize, search, searchField, sorting, roleFilter, banFilter])
 
   useEffect(() => {
     void fetchUsers()
@@ -141,8 +226,8 @@ export function UserTable({
 
   const columns: ColumnDef<UserWithRole>[] = [
     {
-      id: "user",
-      header: "User",
+      id: "name",
+      header: l.columnUser,
       accessorFn: (row) => row.name,
       cell: ({ row }) => {
         const user = row.original
@@ -162,7 +247,7 @@ export function UserTable({
     },
     {
       id: "role",
-      header: "Role",
+      header: l.columnRole,
       accessorFn: (row) => row.role,
       cell: ({ row }) => {
         const role = row.original.role ?? "user"
@@ -170,19 +255,19 @@ export function UserTable({
       },
     },
     {
-      id: "status",
-      header: "Status",
+      id: "banned",
+      header: l.columnStatus,
       accessorFn: (row) => row.banned,
       cell: ({ row }) => {
         const banned = row.original.banned
         return (
-          <Badge variant={banned ? "destructive" : "outline"}>{banned ? "Banned" : "Active"}</Badge>
+          <Badge variant={banned ? "destructive" : "outline"}>{banned ? l.banned : l.active}</Badge>
         )
       },
     },
     {
       id: "createdAt",
-      header: "Created",
+      header: l.columnCreated,
       accessorFn: (row) => row.createdAt,
       cell: ({ row }) => {
         const date = new Date(row.original.createdAt)
@@ -192,8 +277,18 @@ export function UserTable({
     {
       id: "actions",
       header: "",
+      enableSorting: false,
       cell: ({ row }) => {
         const user = row.original
+        const items = {
+          edit: !!onEditUser && can("edit", user),
+          setRole: !!onSetRole && can("setRole", user),
+          ban: !!onBanUser && can("ban", user),
+          setPassword: !!onSetPassword && can("setPassword", user),
+          impersonate: !!onImpersonate && can("impersonate", user),
+          delete: !!onDeleteUser && can("delete", user),
+        }
+        if (!Object.values(items).some(Boolean)) return null
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -202,33 +297,35 @@ export function UserTable({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {onEditUser && (
-                <DropdownMenuItem onClick={() => onEditUser(user)}>Edit</DropdownMenuItem>
+              {items.edit && (
+                <DropdownMenuItem onClick={() => onEditUser?.(user)}>{l.edit}</DropdownMenuItem>
               )}
-              {onSetRole && (
-                <DropdownMenuItem onClick={() => onSetRole(user)}>Set Role</DropdownMenuItem>
+              {items.setRole && (
+                <DropdownMenuItem onClick={() => onSetRole?.(user)}>{l.setRole}</DropdownMenuItem>
               )}
-              {onBanUser && (
-                <DropdownMenuItem onClick={() => onBanUser(user)}>
-                  {user.banned ? "Unban" : "Ban"}
+              {items.ban && (
+                <DropdownMenuItem onClick={() => onBanUser?.(user)}>
+                  {user.banned ? l.unban : l.ban}
                 </DropdownMenuItem>
               )}
-              {onSetPassword && (
-                <DropdownMenuItem onClick={() => onSetPassword(user)}>
-                  Set Password
+              {items.setPassword && (
+                <DropdownMenuItem onClick={() => onSetPassword?.(user)}>
+                  {l.setPassword}
                 </DropdownMenuItem>
               )}
-              {onImpersonate && (
-                <DropdownMenuItem onClick={() => onImpersonate(user)}>Impersonate</DropdownMenuItem>
+              {items.impersonate && (
+                <DropdownMenuItem onClick={() => onImpersonate?.(user)}>
+                  {l.impersonate}
+                </DropdownMenuItem>
               )}
-              {onDeleteUser && (
+              {items.delete && (
                 <>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={() => onDeleteUser(user)}
+                    onClick={() => onDeleteUser?.(user)}
                     className="text-destructive focus:text-destructive"
                   >
-                    Delete
+                    {l.delete}
                   </DropdownMenuItem>
                 </>
               )}
@@ -245,6 +342,7 @@ export function UserTable({
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
     manualSorting: true,
+    sortDescFirst: false,
     pageCount: Math.ceil(total / pageSize),
     state: { sorting },
     onSortingChange: setSorting,
@@ -253,7 +351,7 @@ export function UserTable({
   if (!session.data && !session.isPending) {
     return (
       <div role="alert" className="bg-destructive/10 text-destructive rounded-md p-4">
-        You must be signed in to access the admin panel.
+        {l.notSignedIn}
       </div>
     )
   }
@@ -261,10 +359,10 @@ export function UserTable({
   if (error) {
     return (
       <div role="alert" className="bg-destructive/10 text-destructive rounded-md p-4">
-        <p className="font-medium">Failed to load users</p>
+        <p className="font-medium">{l.loadErrorTitle}</p>
         <p className="text-sm">{error}</p>
         <Button variant="outline" size="sm" className="mt-2" onClick={() => void fetchUsers()}>
-          Retry
+          {l.retry}
         </Button>
       </div>
     )
@@ -276,35 +374,37 @@ export function UserTable({
     <div className={cn("space-y-4", className)}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <Input
-          placeholder="Search by email..."
+          placeholder={l.searchPlaceholder}
           value={search}
           onChange={(e) => {
             setSearch(e.target.value)
             setPage(0)
           }}
           className="max-w-sm"
-          aria-label="Search users"
+          aria-label={l.searchPlaceholder}
         />
         <div className="flex gap-2">
-          <Select
-            value={roleFilter}
-            onValueChange={(value) => {
-              setRoleFilter(value)
-              setPage(0)
-            }}
-          >
-            <SelectTrigger className="w-[140px]" aria-label="Filter by role">
-              <SelectValue placeholder="All roles" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All roles</SelectItem>
-              {availableRoles.map((role) => (
-                <SelectItem key={role} value={role}>
-                  {role}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {showRoleFilter && (
+            <Select
+              value={roleFilter}
+              onValueChange={(value) => {
+                setRoleFilter(value)
+                setPage(0)
+              }}
+            >
+              <SelectTrigger className="w-[140px]" aria-label={l.allRoles}>
+                <SelectValue placeholder={l.allRoles} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{l.allRoles}</SelectItem>
+                {filterableRoles?.map((role) => (
+                  <SelectItem key={role} value={role}>
+                    {role}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <Select
             value={banFilter}
             onValueChange={(value) => {
@@ -312,13 +412,13 @@ export function UserTable({
               setPage(0)
             }}
           >
-            <SelectTrigger className="w-[140px]" aria-label="Filter by status">
-              <SelectValue placeholder="All statuses" />
+            <SelectTrigger className="w-[140px]" aria-label={l.allStatuses}>
+              <SelectValue placeholder={l.allStatuses} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="banned">Banned</SelectItem>
+              <SelectItem value="all">{l.allStatuses}</SelectItem>
+              <SelectItem value="active">{l.active}</SelectItem>
+              <SelectItem value="banned">{l.banned}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -350,9 +450,19 @@ export function UserTable({
                       }
                     }}
                   >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
+                    {header.isPlaceholder ? null : (
+                      <span className="inline-flex items-center gap-1">
+                        {flexRender(header.column.columnDef.header, header.getContext())}
+                        {header.column.getCanSort() &&
+                          (header.column.getIsSorted() === "asc" ? (
+                            <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" />
+                          ) : header.column.getIsSorted() === "desc" ? (
+                            <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
+                          ) : (
+                            <ChevronsUpDown className="h-3.5 w-3.5 opacity-40" aria-hidden="true" />
+                          ))}
+                      </span>
+                    )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -362,13 +472,13 @@ export function UserTable({
             {loading ? (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  Loading users...
+                  {l.loading}
                 </TableCell>
               </TableRow>
             ) : users.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No users found.
+                  {l.empty}
                 </TableCell>
               </TableRow>
             ) : (
@@ -391,9 +501,7 @@ export function UserTable({
       </div>
 
       <div className="flex items-center justify-between">
-        <p className="text-muted-foreground text-sm">
-          {total} user{total !== 1 ? "s" : ""} total
-        </p>
+        <p className="text-muted-foreground text-sm">{l.totalUsers(total)}</p>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
@@ -401,18 +509,16 @@ export function UserTable({
             disabled={page === 0 || loading}
             onClick={() => setPage((p) => p - 1)}
           >
-            Previous
+            {l.previous}
           </Button>
-          <span className="text-sm">
-            Page {page + 1} of {totalPages || 1}
-          </span>
+          <span className="text-sm">{l.pageOf(page + 1, totalPages || 1)}</span>
           <Button
             variant="outline"
             size="sm"
             disabled={page >= totalPages - 1 || loading}
             onClick={() => setPage((p) => p + 1)}
           >
-            Next
+            {l.next}
           </Button>
         </div>
       </div>

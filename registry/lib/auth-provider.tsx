@@ -2,7 +2,7 @@
 
 import { createContext, useContext } from "react"
 import type { ReactNode } from "react"
-import type { AdminClientShape, AuthClientShape } from "./auth-types"
+import type { AdminClientShape, AuthClientShape } from "@/registry/lib/auth-types"
 
 interface AuthContextValue {
   authClient: AuthClientShape

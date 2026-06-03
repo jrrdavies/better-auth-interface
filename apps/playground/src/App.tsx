@@ -14,8 +14,9 @@ import { DeleteAccountDialog } from "@/registry/auth/delete-account-dialog"
 import { AdminDashboard } from "@/registry/admin/admin-dashboard"
 import type { AdminDashboardLabels } from "@/registry/admin/admin-dashboard"
 import type { UserAction, UserTableLabels } from "@/registry/admin/user-table"
+import { ApiKeyList } from "@/registry/api-key/api-key-list"
 
-type Tab = "auth" | "admin"
+type Tab = "auth" | "admin" | "api-keys"
 type AuthView =
   | "sign-in"
   | "sign-up"
@@ -103,6 +104,16 @@ function App() {
                 }`}
               >
                 Admin Dashboard
+              </button>
+              <button
+                onClick={() => setTab("api-keys")}
+                className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+                  tab === "api-keys"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                }`}
+              >
+                API Keys
               </button>
             </div>
           </div>
@@ -231,6 +242,18 @@ function App() {
               labels={lang === "nl" ? NL_ADMIN_LABELS : undefined}
               tableLabels={lang === "nl" ? NL_TABLE_LABELS : undefined}
             />
+          </div>
+        )}
+
+        {tab === "api-keys" && (
+          <div className="mx-auto max-w-4xl px-6 py-8">
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold">API Keys</h2>
+              <p className="text-muted-foreground text-sm">
+                Create, inspect, enable/disable, and delete API keys.
+              </p>
+            </div>
+            <ApiKeyList onUpdate={() => console.log("API keys changed")} />
           </div>
         )}
       </div>

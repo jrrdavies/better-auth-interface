@@ -101,28 +101,54 @@ source:
 
 Auth forms (sign-in, sign-up, etc.) accept the same `labels` prop for full i18n.
 
+## API keys
+
+The API key components call Better Auth's [api-key plugin](https://www.better-auth.com/docs/plugins/api-key),
+so register the `apiKey()` client plugin on your auth client. They are accessed via the
+`useApiKeyClient()` hook, which throws a clear error if the plugin is missing.
+
+```bash
+npx shadcn add https://jrrdavies.github.io/better-auth-interface/r/api-key-list.json
+```
+
+```tsx
+import { ApiKeyList } from "@/components/api-key-list"
+
+export default function ApiKeysPage() {
+  return <ApiKeyList />
+}
+```
+
+`api-key-list` is self-contained: it renders the create dialog, a details dialog per row, and
+enable/disable and delete actions. Every UI string is overridable via `labels`, and `formatDate`
+controls date rendering. The full key value is shown exactly once on creation and can never be
+retrieved again.
+
 ## Components
 
-| Component               | Description                                   | Required Plugin |
-| ----------------------- | --------------------------------------------- | --------------- |
-| `auth-provider`         | React context wrapping the Better Auth client | —               |
-| `sign-in-form`          | Email & password sign-in with remember me     | —               |
-| `sign-up-form`          | Registration with email verification support  | —               |
-| `forgot-password-form`  | Request password reset email                  | —               |
-| `reset-password-form`   | Set new password from reset token             | —               |
-| `verify-email`          | Email verification status display             | —               |
-| `change-password-form`  | Change password for authenticated users       | —               |
-| `update-profile-form`   | Update display name and avatar                | —               |
-| `delete-account-dialog` | Account deletion with confirmation            | —               |
-| `user-table`            | Full-featured admin user data table           | Admin           |
-| `create-user-dialog`    | Admin create user form                        | Admin           |
-| `edit-user-dialog`      | Admin edit user form                          | Admin           |
-| `ban-user-dialog`       | Ban/unban user with reason and expiry         | Admin           |
-| `set-role-dialog`       | Change user role                              | Admin           |
-| `delete-user-dialog`    | Admin delete user with confirmation           | Admin           |
-| `set-password-dialog`   | Admin set user password                       | Admin           |
-| `impersonate-button`    | Start/stop user impersonation                 | Admin           |
-| `admin-dashboard`       | Composite admin panel with all components     | Admin           |
+| Component                | Description                                   | Required Plugin |
+| ------------------------ | --------------------------------------------- | --------------- |
+| `auth-provider`          | React context wrapping the Better Auth client | —               |
+| `sign-in-form`           | Email & password sign-in with remember me     | —               |
+| `sign-up-form`           | Registration with email verification support  | —               |
+| `forgot-password-form`   | Request password reset email                  | —               |
+| `reset-password-form`    | Set new password from reset token             | —               |
+| `verify-email`           | Email verification status display             | —               |
+| `change-password-form`   | Change password for authenticated users       | —               |
+| `update-profile-form`    | Update display name and avatar                | —               |
+| `delete-account-dialog`  | Account deletion with confirmation            | —               |
+| `user-table`             | Full-featured admin user data table           | Admin           |
+| `create-user-dialog`     | Admin create user form                        | Admin           |
+| `edit-user-dialog`       | Admin edit user form                          | Admin           |
+| `ban-user-dialog`        | Ban/unban user with reason and expiry         | Admin           |
+| `set-role-dialog`        | Change user role                              | Admin           |
+| `delete-user-dialog`     | Admin delete user with confirmation           | Admin           |
+| `set-password-dialog`    | Admin set user password                       | Admin           |
+| `impersonate-button`     | Start/stop user impersonation                 | Admin           |
+| `admin-dashboard`        | Composite admin panel with all components     | Admin           |
+| `api-key-list`           | Table of API keys with create/disable/delete  | API Key         |
+| `create-api-key-dialog`  | Create an API key, shown once on creation     | API Key         |
+| `api-key-details-dialog` | View metadata and edit name/enabled state     | API Key         |
 
 ## How it works
 

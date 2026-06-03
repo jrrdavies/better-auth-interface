@@ -402,6 +402,81 @@
           "type": "registry:component"
         }
       ]
+    },
+    {
+      "name": "create-api-key-dialog",
+      "type": "registry:component",
+      "title": "Create API Key Dialog",
+      "description": "Dialog to create an API key, showing the full key once with a copy button.",
+      "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
+      "registryDependencies": [
+        "auth-provider",
+        "auth-types",
+        "auth-utils",
+        "button",
+        "input",
+        "label",
+        "dialog",
+        "select"
+      ],
+      "files": [
+        {
+          "path": "registry/api-key/create-api-key-dialog.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "api-key-details-dialog",
+      "type": "registry:component",
+      "title": "API Key Details Dialog",
+      "description": "Dialog to view API key metadata and edit its name and enabled state.",
+      "dependencies": [],
+      "registryDependencies": [
+        "auth-provider",
+        "auth-types",
+        "auth-utils",
+        "button",
+        "checkbox",
+        "input",
+        "label",
+        "dialog"
+      ],
+      "files": [
+        {
+          "path": "registry/api-key/api-key-details-dialog.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
+      "name": "api-key-list",
+      "type": "registry:component",
+      "title": "API Key List",
+      "description": "Self-contained table of API keys with create, details, enable/disable, and delete actions.",
+      "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
+      "registryDependencies": [
+        "auth-provider",
+        "auth-types",
+        "auth-utils",
+        "create-api-key-dialog",
+        "api-key-details-dialog",
+        "badge",
+        "button",
+        "checkbox",
+        "dialog",
+        "dropdown-menu",
+        "input",
+        "label",
+        "select",
+        "table"
+      ],
+      "files": [
+        {
+          "path": "registry/api-key/api-key-list.tsx",
+          "type": "registry:component"
+        }
+      ]
     }
   ]
 }

@@ -2,7 +2,7 @@
 
 import { createContext, useContext } from "react"
 import type { ReactNode } from "react"
-import type { AdminClientShape, AuthClientShape } from "./types"
+import type { AdminClientShape, ApiKeyMethods, AuthClientShape } from "./types"
 
 interface AuthContextValue {
   authClient: AuthClientShape
@@ -81,4 +81,24 @@ export function useAdminClient(): AdminClientShape {
     )
   }
   return context.adminClient
+}
+
+/**
+ * Hook to access the Better Auth api-key plugin methods from the auth client.
+ * Must be called within an AuthProvider whose authClient has the api-key plugin configured.
+ *
+ * @throws Error if used outside of AuthProvider or if the api-key plugin is not configured
+ */
+export function useApiKeyClient(): ApiKeyMethods {
+  const context = useContext(AuthContext)
+  if (!context) {
+    throw new Error("useApiKeyClient must be used within an AuthProvider")
+  }
+  if (!context.authClient.apiKey) {
+    throw new Error(
+      "useApiKeyClient requires the Better Auth api-key plugin to be configured. " +
+        "Make sure you have added the apiKey() client plugin to your auth client.",
+    )
+  }
+  return context.authClient.apiKey
 }

@@ -478,6 +478,29 @@
           "type": "registry:component"
         }
       ]
+    },
+    {
+      "name": "api-key-details-dialog",
+      "type": "registry:component",
+      "title": "API Key Details Dialog",
+      "description": "Dialog to view API key metadata and edit its name and enabled state.",
+      "dependencies": [],
+      "registryDependencies": [
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-types.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-utils.json",
+        "button",
+        "checkbox",
+        "input",
+        "label",
+        "dialog"
+      ],
+      "files": [
+        {
+          "path": "registry/api-key/api-key-details-dialog.tsx",
+          "type": "registry:component"
+        }
+      ]
     }
   ]
 }

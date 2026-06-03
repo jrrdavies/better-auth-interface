@@ -63,6 +63,46 @@ export interface SessionData {
   session: Session
 }
 
+/**
+ * API key record returned by the Better Auth api-key plugin.
+ * The secret key value is never included here — it is only returned once by `create`.
+ */
+export interface ApiKey {
+  /** Unique key identifier */
+  id: string
+  /** Human-readable key name */
+  name: string | null
+  /** First few characters of the key, safe to display for identification */
+  start: string | null
+  /** Configured key prefix */
+  prefix: string | null
+  /** ID of the user who owns the key */
+  userId: string
+  /** Whether the key is currently enabled (a disabled key is rejected on use) */
+  enabled: boolean
+  /** When the key expires (null = never expires) */
+  expiresAt: Date | null
+  /** When the key was created */
+  createdAt: Date
+  /** When the key was last updated */
+  updatedAt: Date
+  /** When the key was last used to make a request (null = never used) */
+  lastRequest: Date | null
+  /** Remaining requests when a usage limit is configured (null = unlimited) */
+  remaining: number | null
+  /** Arbitrary metadata attached at creation */
+  metadata: Record<string, unknown> | null
+}
+
+/**
+ * API key including the full secret value.
+ * Returned only by `apiKey.create` — the value cannot be retrieved again afterwards.
+ */
+export interface CreatedApiKey extends ApiKey {
+  /** The full API key secret. Shown once on creation and never retrievable again. */
+  key: string
+}
+
 /** Better Auth API error response shape */
 export interface APIErrorResponse {
   /** Machine-readable error code */
@@ -142,6 +182,38 @@ export interface AuthClientShape {
     error: BetterFetchError | null
     isPending: boolean
   }
+  /**
+   * API key plugin methods. Present only when the Better Auth api-key plugin
+   * is configured on the client. Access via the `useApiKeyClient()` hook,
+   * which throws a helpful error when the plugin is missing.
+   */
+  apiKey?: ApiKeyMethods | undefined
+}
+
+/** Client methods provided by the Better Auth api-key plugin. */
+export interface ApiKeyMethods {
+  /** Create a new API key. The full secret is returned once in the response. */
+  create: (data: {
+    name?: string | undefined
+    /** Seconds until the key expires. Omit or pass null for a key that never expires. */
+    expiresIn?: number | null | undefined
+    /** Optional prefix prepended to the generated key */
+    prefix?: string | undefined
+    /** Arbitrary metadata to attach to the key */
+    metadata?: Record<string, unknown> | undefined
+  }) => Promise<BetterFetchResponse<CreatedApiKey>>
+  /** List all API keys owned by the current user. */
+  list: () => Promise<BetterFetchResponse<ApiKey[]>>
+  /** Fetch a single API key's metadata by id. */
+  get: (data: { query: { id: string } }) => Promise<BetterFetchResponse<ApiKey | null>>
+  /** Update an API key's name or enabled state. */
+  update: (data: {
+    keyId: string
+    name?: string | undefined
+    enabled?: boolean | undefined
+  }) => Promise<BetterFetchResponse<ApiKey>>
+  /** Permanently delete an API key. */
+  delete: (data: { keyId: string }) => Promise<BetterFetchResponse<{ success: boolean }>>
 }
 
 /** Admin client methods provided by the Better Auth admin plugin */

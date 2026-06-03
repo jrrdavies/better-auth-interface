@@ -1,4 +1,4 @@
-import type { AuthClientShape, AdminClientShape, UserWithRole } from "@/registry/lib/auth-types"
+import type { ApiKey, AuthClientShape, AdminClientShape, UserWithRole } from "@/registry/lib/auth-types"
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -74,6 +74,53 @@ let currentUser = mockUsers[0]!
 let isLoggedIn = true
 let impersonating = false
 
+const DAY_MS = 86400000
+let apiKeySeq = 3
+const mockApiKeys: ApiKey[] = [
+  {
+    id: "key-1",
+    name: "Production server",
+    start: "ba_prod",
+    prefix: "ba_",
+    userId: "1",
+    enabled: true,
+    expiresAt: new Date(Date.now() + 30 * DAY_MS),
+    createdAt: new Date("2024-05-01"),
+    updatedAt: new Date("2024-05-01"),
+    lastRequest: new Date("2024-06-02"),
+    remaining: null,
+    metadata: null,
+  },
+  {
+    id: "key-2",
+    name: "CI pipeline",
+    start: "ba_ci12",
+    prefix: "ba_",
+    userId: "1",
+    enabled: false,
+    expiresAt: null,
+    createdAt: new Date("2024-03-15"),
+    updatedAt: new Date("2024-04-10"),
+    lastRequest: null,
+    remaining: null,
+    metadata: null,
+  },
+  {
+    id: "key-3",
+    name: "Legacy integration",
+    start: "ba_leg9",
+    prefix: "ba_",
+    userId: "1",
+    enabled: true,
+    expiresAt: new Date("2024-01-01"),
+    createdAt: new Date("2023-06-01"),
+    updatedAt: new Date("2023-06-01"),
+    lastRequest: new Date("2023-12-20"),
+    remaining: null,
+    metadata: null,
+  },
+]
+
 export const mockAuthClient: AuthClientShape = {
   signIn: {
     email: async ({ email, password }) => {
@@ -146,6 +193,56 @@ export const mockAuthClient: AuthClientShape = {
       error: null,
       isPending: false,
     }
+  },
+  apiKey: {
+    create: async ({ name, expiresIn }) => {
+      await delay(800)
+      apiKeySeq += 1
+      const id = `key-${apiKeySeq}`
+      const fullKey = `ba_${id}_${Math.random().toString(36).slice(2, 10)}sk_live_secret`
+      const created: ApiKey = {
+        id,
+        name: name ?? null,
+        start: fullKey.slice(0, 7),
+        prefix: "ba_",
+        userId: currentUser.id,
+        enabled: true,
+        expiresAt: expiresIn != null ? new Date(Date.now() + expiresIn * 1000) : null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        lastRequest: null,
+        remaining: null,
+        metadata: null,
+      }
+      mockApiKeys.unshift(created)
+      return ok({ ...created, key: fullKey })
+    },
+    list: async () => {
+      await delay(500)
+      return ok([...mockApiKeys])
+    },
+    get: async ({ query }) => {
+      await delay(400)
+      const key = mockApiKeys.find((k) => k.id === query.id)
+      if (!key) return err("API key not found", 404)
+      return ok(key)
+    },
+    update: async ({ keyId, name, enabled }) => {
+      await delay(700)
+      const key = mockApiKeys.find((k) => k.id === keyId)
+      if (!key) return err("API key not found", 404)
+      if (name !== undefined) key.name = name
+      if (enabled !== undefined) key.enabled = enabled
+      key.updatedAt = new Date()
+      return ok(key)
+    },
+    delete: async ({ keyId }) => {
+      await delay(700)
+      const idx = mockApiKeys.findIndex((k) => k.id === keyId)
+      if (idx === -1) return err("API key not found", 404)
+      mockApiKeys.splice(idx, 1)
+      return ok({ success: true })
+    },
   },
 }
 

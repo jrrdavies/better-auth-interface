@@ -146,6 +146,27 @@ function UsersPage() {
 }
 ```
 
+## API keys
+
+The API key components call Better Auth's [api-key plugin](https://www.better-auth.com/docs/plugins/api-key),
+so register the `apiKey()` client plugin on your auth client. They are accessed via the
+`useApiKeyClient()` hook, which throws a clear error if the plugin is missing.
+
+```bash
+npx shadcn add https://jrrdavies.github.io/better-auth-interface/r/create-api-key-dialog.json
+```
+
+```tsx
+import { CreateApiKeyDialog } from "@/components/create-api-key-dialog"
+
+export default function ApiKeysPage() {
+  return <CreateApiKeyDialog onSuccess={(key) => console.log("created", key)} />
+}
+```
+
+The full key value is shown exactly once on creation and can never be retrieved again. Expiration
+presets (`expirationOptions`) and every UI string (`labels`) are configurable.
+
 ## Components
 
 | Component               | Description                                   | Required Plugin |
@@ -168,6 +189,7 @@ function UsersPage() {
 | `set-password-dialog`   | Admin set user password                       | Admin           |
 | `impersonate-button`    | Start/stop user impersonation                 | Admin           |
 | `admin-dashboard`       | Composite admin panel with all components     | Admin           |
+| `create-api-key-dialog` | Create an API key, shown once on creation     | API Key         |
 
 ## How it works
 

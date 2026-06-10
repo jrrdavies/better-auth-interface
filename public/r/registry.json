@@ -455,6 +455,29 @@
           "type": "registry:component"
         }
       ]
+    },
+    {
+      "name": "create-api-key-dialog",
+      "type": "registry:component",
+      "title": "Create API Key Dialog",
+      "description": "Dialog to create an API key, showing the full key once with a copy button.",
+      "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
+      "registryDependencies": [
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-types.json",
+        "https://jrrdavies.github.io/better-auth-interface/r/auth-utils.json",
+        "button",
+        "input",
+        "label",
+        "dialog",
+        "select"
+      ],
+      "files": [
+        {
+          "path": "registry/api-key/create-api-key-dialog.tsx",
+          "type": "registry:component"
+        }
+      ]
     }
   ]
 }

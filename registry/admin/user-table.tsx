@@ -104,12 +104,17 @@ export interface UserTableProps {
   /**
    * Roles offered in the role filter dropdown. When omitted or empty,
    * the role filter is hidden entirely. The filter matches with `contains`, so a user with
-   * several roles is found under each of them; `admin` also matches `super-admin` unless the
+   * several roles is found under each of them; `admin` also matches `sysadmin` unless the
    * server narrows it.
    */
   filterableRoles?: string[] | undefined
   /** Which user field the search box queries. Defaults to "email". */
   searchField?: "name" | "email" | undefined
+  /**
+   * Roles that carry admin rights, highlighted in the role column; the counterpart of the
+   * `adminRoles` option of Better Auth's admin plugin. Defaults to `["admin"]`.
+   */
+  adminRoles?: string[] | undefined
   /**
    * Per-row gate deciding whether a given action is available for a user.
    * Return `false` to hide the action for that row. Defaults to allowing all.
@@ -151,6 +156,7 @@ export function UserTable({
   onUserClick,
   filterableRoles,
   searchField = "email",
+  adminRoles = ["admin"],
   canPerformAction,
   onEditUser,
   onSetRole,
@@ -254,7 +260,7 @@ export function UserTable({
       cell: ({ row }) => (
         <div className="flex flex-wrap gap-1">
           {parseRoles(row.original.role ?? "user").map((role) => (
-            <Badge key={role} variant={role === "admin" ? "default" : "secondary"}>
+            <Badge key={role} variant={adminRoles.includes(role) ? "default" : "secondary"}>
               {role}
             </Badge>
           ))}

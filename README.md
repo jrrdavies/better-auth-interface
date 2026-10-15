@@ -86,8 +86,9 @@ source:
   an admin from managing other admins). `action` is one of
   `"edit" | "setRole" | "ban" | "setPassword" | "impersonate" | "delete"`.
 - **`searchField`** — `"email"` (default) or `"name"`.
-- **`adminRole`** / **`showStats`** — which role is counted in the "Admins" stat card, and whether the
-  stat cards render.
+- **`adminRoles`** / **`showStats`** — the roles that carry admin rights (default `["admin"]`), and
+  whether the stat cards render. Pass the same list as the `adminRoles` option of Better Auth's admin
+  plugin: these roles are counted in the "Admins" stat card and highlighted in the table.
 - **`labels`** / **`tableLabels`** / **`dialogLabels`** — override any UI string for i18n or custom
   copy (dashboard chrome, table, and the action dialogs respectively).
 
@@ -96,7 +97,7 @@ source:
   assignableRoles={["user", "admin"]}
   searchField="name"
   canPerformAction={(_action, user) =>
-    parseRoles(currentUser.role).includes("super-admin") || !parseRoles(user.role).includes("admin")
+    parseRoles(currentUser.role).includes("owner") || !parseRoles(user.role).includes("admin")
   }
   tableLabels={{ searchPlaceholder: "Zoeken...", edit: "Bewerken" }}
   dialogLabels={{ createUser: { triggerText: "Gebruiker aanmaken" } }}
@@ -113,10 +114,11 @@ comma-separated string such as `"editor,viewer"`, and its permission checks gran
 of the roles does. Use `parseRoles` from `auth-utils` to split that string, as in the
 `canPerformAction` example above.
 
-The table's role filter and the "Admins" stat card match with `contains`, so a user is found under
-each of their roles. A role name that is part of another one matches both: filtering on `admin`
-also lists `super-admin` users. Narrow that on the server (a `before` hook on `/admin/list-users`)
-if your roles overlap like that.
+The table's role filter matches with `contains`, so a user is found under each of their roles. A
+role name that is part of another one matches both: filtering on `admin` also lists `sysadmin`
+users. Narrow that on the server (a `before` hook on `/admin/list-users`) if your roles overlap like
+that. The "Admins" stat card checks the roles exactly and counts a user with several admin roles
+once.
 
 ### Custom layouts (composition)
 
@@ -131,7 +133,7 @@ import { CreateUserDialog } from "@/components/create-user-dialog"
 import { EditUserDialog } from "@/components/edit-user-dialog"
 
 function UsersPage() {
-  const admin = useAdminUsers({ adminRole: "admin" })
+  const admin = useAdminUsers({ adminRoles: ["admin"] })
 
   return (
     <>

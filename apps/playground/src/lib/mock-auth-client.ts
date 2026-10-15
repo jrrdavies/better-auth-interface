@@ -45,7 +45,7 @@ const mockUsers: UserWithRole[] = [
     image: "https://api.dicebear.com/9.x/avataaars/svg?seed=diana",
     createdAt: new Date("2024-02-01"),
     updatedAt: new Date("2024-04-20"),
-    role: "admin",
+    role: "admin,owner",
     banned: false,
   },
   {

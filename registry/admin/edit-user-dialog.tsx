@@ -30,6 +30,8 @@ export interface EditUserDialogLabels {
   nameLabel?: string
   emailLabel?: string
   roleLabel?: string
+  /** Shown after a role the user holds that is not offered */
+  unavailableRole?: string
   cancel?: string
   submit?: string
   submitting?: string
@@ -47,6 +49,7 @@ const DEFAULT_LABELS: Required<EditUserDialogLabels> = {
   nameLabel: "Name",
   emailLabel: "Email",
   roleLabel: "Roles",
+  unavailableRole: "(not available)",
   cancel: "Cancel",
   submit: "Save changes",
   submitting: "Saving...",
@@ -55,6 +58,11 @@ const DEFAULT_LABELS: Required<EditUserDialogLabels> = {
   emailInvalid: "Please enter a valid email address",
   roleRequired: "Select at least one role",
   networkError: "Unable to connect. Please try again.",
+}
+
+/** The roles the user holds that are also offered, the ones that start checked. */
+function heldOfferedRoles(user: UserWithRole, offered: string[]): string[] {
+  return parseRoles(user.role ?? "user").filter((role) => offered.includes(role))
 }
 
 /** Props for the EditUserDialog component */
@@ -66,8 +74,9 @@ export interface EditUserDialogProps {
   /** Callback fired after successful user update */
   onSuccess?: ((user: UserWithRole) => void) | undefined
   /**
-   * Roles offered as checkboxes; a user can be given several. Roles the user already holds are
-   * listed as well, so one that is not offered can still be seen and removed.
+   * Roles offered as checkboxes; a user can be given several. A role the user holds that is not
+   * offered is listed unchecked and marked, so saving removes it unless it is ticked again: Better
+   * Auth refuses to set a role its configuration does not know.
    */
   roles?: string[] | undefined
   /** Controlled open state */
@@ -117,17 +126,23 @@ export function EditUserDialog({
     formState: { errors, isSubmitting },
   } = useForm<EditUserFormValues>({
     resolver: zodResolver(editUserSchema),
-    defaultValues: { name: user.name, email: user.email, role: parseRoles(user.role ?? "user") },
+    defaultValues: { name: user.name, email: user.email, role: heldOfferedRoles(user, roles) },
   })
 
   const selectedRoles = watch("role")
   const roleOptions = [...new Set([...roles, ...parseRoles(user.role)])]
 
+  // A joined key keeps the effect from resetting the form when the caller passes a new array.
+  const rolesKey = roles.join(",")
   useEffect(() => {
     if (isOpen) {
-      reset({ name: user.name, email: user.email, role: parseRoles(user.role ?? "user") })
+      reset({
+        name: user.name,
+        email: user.email,
+        role: heldOfferedRoles(user, rolesKey.split(",")),
+      })
     }
-  }, [isOpen, user, reset])
+  }, [isOpen, user, reset, rolesKey])
 
   async function onSubmit(values: EditUserFormValues) {
     setServerError(null)
@@ -245,6 +260,9 @@ export function EditUserDialog({
                       className="cursor-pointer text-sm font-normal"
                     >
                       {role}
+                      {!roles.includes(role) && (
+                        <span className="text-muted-foreground">{l.unavailableRole}</span>
+                      )}
                     </Label>
                   </div>
                 ))}

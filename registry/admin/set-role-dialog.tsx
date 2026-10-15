@@ -24,6 +24,8 @@ export interface SetRoleDialogLabels {
   title?: string
   description?: (user: UserWithRole) => string
   roleLabel?: string
+  /** Shown after a role the user holds that is not offered */
+  unavailableRole?: string
   cancel?: string
   submit?: string
   submitting?: string
@@ -35,6 +37,7 @@ const DEFAULT_LABELS: Required<SetRoleDialogLabels> = {
   title: "Set role",
   description: (user) => `Change the role for ${user.name} (${user.email}).`,
   roleLabel: "Roles",
+  unavailableRole: "(not available)",
   cancel: "Cancel",
   submit: "Save role",
   submitting: "Saving...",
@@ -48,8 +51,9 @@ export interface SetRoleDialogProps {
   /** Custom trigger element */
   trigger?: ReactNode | undefined
   /**
-   * Roles offered as checkboxes; a user can be given several. Roles the user already holds are
-   * listed as well, so one that is not offered can still be seen and removed.
+   * Roles offered as checkboxes; a user can be given several. A role the user holds that is not
+   * offered is listed unchecked and marked, so saving removes it unless it is ticked again: Better
+   * Auth refuses to set a role its configuration does not know.
    */
   availableRoles?: string[] | undefined
   /** Callback fired after successful role change */
@@ -78,7 +82,9 @@ export function SetRoleDialog({
   const l = useMemo(() => ({ ...DEFAULT_LABELS, ...labels }), [labels])
   const [internalOpen, setInternalOpen] = useState(false)
   const isOpen = openProp ?? internalOpen
-  const [roles, setRoles] = useState(() => parseRoles(user.role ?? "user"))
+  const heldOfferedRoles = () =>
+    parseRoles(user.role ?? "user").filter((r) => availableRoles.includes(r))
+  const [roles, setRoles] = useState(heldOfferedRoles)
   const roleOptions = [...new Set([...availableRoles, ...parseRoles(user.role)])]
   const [serverError, setServerError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
@@ -109,7 +115,7 @@ export function SetRoleDialog({
     setInternalOpen(nextOpen)
     onOpenChange?.(nextOpen)
     if (nextOpen) {
-      setRoles(parseRoles(user.role ?? "user"))
+      setRoles(heldOfferedRoles())
     }
     if (!nextOpen) {
       setServerError(null)
@@ -154,6 +160,9 @@ export function SetRoleDialog({
                 />
                 <Label htmlFor={`set-role-${r}`} className="cursor-pointer text-sm font-normal">
                   {r}
+                  {!availableRoles.includes(r) && (
+                    <span className="text-muted-foreground">{l.unavailableRole}</span>
+                  )}
                 </Label>
               </div>
             ))}

@@ -88,6 +88,8 @@ export interface AdminDashboardProps {
   canPerformAction?: ((action: UserAction, user: UserWithRole) => boolean) | undefined
   /** Which user field the search box queries. Defaults to "email". */
   searchField?: "name" | "email" | undefined
+  /** Forwarded to the table: the server already answers a role filter on whole roles. */
+  serverFiltersRolesExactly?: boolean | undefined
   /**
    * Roles that carry admin rights: counted in the "Admins" stat card and highlighted in the table.
    * The counterpart of the `adminRoles` option of Better Auth's admin plugin. Defaults to
@@ -119,6 +121,7 @@ export function AdminDashboard({
   filterableRoles,
   canPerformAction,
   searchField = "email",
+  serverFiltersRolesExactly,
   adminRoles = ["admin"],
   showStats = true,
   createUserTrigger,
@@ -241,6 +244,7 @@ export function AdminDashboard({
         key={refreshKey}
         filterableRoles={roleFilterOptions}
         searchField={searchField}
+        serverFiltersRolesExactly={serverFiltersRolesExactly}
         adminRoles={adminRoles}
         canPerformAction={canPerformAction}
         labels={tableLabels}

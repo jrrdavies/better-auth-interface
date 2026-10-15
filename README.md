@@ -118,7 +118,10 @@ The table's role filter and the "Admins" stat card compare whole roles, so a use
 each of their roles and filtering on `admin` does not list a `sysadmin`. Better Auth's list endpoint
 can only compare text, so an active role filter loads every user whose role contains the name and
 pages through the exact matches in the browser; without a role filter the table pages on the server
-as before.
+as before. When a `before` hook on `/admin/list-users` already matches the role filter on whole
+roles, pass `serverFiltersRolesExactly` and the table pages and sorts on the server for a role
+filter too. A role the user holds that the dialogs do not offer is listed unchecked and marked, so
+saving removes it: Better Auth refuses to set a role its configuration does not know.
 
 ### Custom layouts (composition)
 

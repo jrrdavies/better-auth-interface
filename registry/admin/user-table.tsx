@@ -104,10 +104,18 @@ export interface UserTableProps {
   /**
    * Roles offered in the role filter dropdown. When omitted or empty, the role filter is hidden
    * entirely. The filter matches whole roles, so a user with several roles is found under each of
-   * them. The server can only compare text, so an active role filter loads every user whose role
-   * contains the name and pages through the exact matches in the browser.
+   * them. Better Auth's list filter only compares text, so unless `serverFiltersRolesExactly` is
+   * set, an active role filter loads every user whose role contains the name and pages through the
+   * exact matches in the browser.
    */
   filterableRoles?: string[] | undefined
+  /**
+   * Set when the server already answers a role filter on whole roles, for example with a `before`
+   * hook on `/admin/list-users`. The table then asks for one page at a time, sorted by the server,
+   * instead of reading every candidate. Only one filter reaches the server, so the status filter is
+   * ignored while a role filter is active.
+   */
+  serverFiltersRolesExactly?: boolean | undefined
   /** Which user field the search box queries. Defaults to "email". */
   searchField?: "name" | "email" | undefined
   /**
@@ -156,6 +164,7 @@ export function UserTable({
   onUserClick,
   filterableRoles,
   searchField = "email",
+  serverFiltersRolesExactly = false,
   adminRoles = ["admin"],
   canPerformAction,
   onEditUser,
@@ -213,7 +222,7 @@ export function UserTable({
      * A role filter compares whole roles, which the server cannot do, so the pages are cut here.
      * Paging re-slices the matches already read; another role, search, sort or status reads again.
      */
-    if (roleFilter !== "all") {
+    if (roleFilter !== "all" && !serverFiltersRolesExactly) {
       const key = JSON.stringify([roleFilter, banFilter, query])
       let matched = roleMatches.current?.key === key ? roleMatches.current.users : null
       if (!matched) {
@@ -240,9 +249,11 @@ export function UserTable({
         ...query,
         limit: pageSize,
         offset: page * pageSize,
-        filterField: banFilter !== "all" ? "banned" : undefined,
-        filterValue: banFilter !== "all" ? banFilter === "banned" : undefined,
-        filterOperator: banFilter !== "all" ? "eq" : undefined,
+        ...(roleFilter !== "all"
+          ? { filterField: "role", filterValue: roleFilter, filterOperator: "contains" }
+          : banFilter !== "all"
+            ? { filterField: "banned", filterValue: banFilter === "banned", filterOperator: "eq" }
+            : {}),
       },
     })
     if (!isLatest()) return
@@ -258,7 +269,17 @@ export function UserTable({
       setTotal(result.data.total)
     }
     setLoading(false)
-  }, [adminClient, page, pageSize, search, searchField, sorting, roleFilter, banFilter])
+  }, [
+    adminClient,
+    page,
+    pageSize,
+    search,
+    searchField,
+    serverFiltersRolesExactly,
+    sorting,
+    roleFilter,
+    banFilter,
+  ])
 
   useEffect(() => {
     void fetchUsers()

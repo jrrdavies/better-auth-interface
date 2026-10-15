@@ -114,11 +114,11 @@ comma-separated string such as `"editor,viewer"`, and its permission checks gran
 of the roles does. Use `parseRoles` from `auth-utils` to split that string, as in the
 `canPerformAction` example above.
 
-The table's role filter matches with `contains`, so a user is found under each of their roles. A
-role name that is part of another one matches both: filtering on `admin` also lists `sysadmin`
-users. Narrow that on the server (a `before` hook on `/admin/list-users`) if your roles overlap like
-that. The "Admins" stat card checks the roles exactly and counts a user with several admin roles
-once.
+The table's role filter and the "Admins" stat card compare whole roles, so a user is found under
+each of their roles and filtering on `admin` does not list a `sysadmin`. Better Auth's list endpoint
+can only compare text, so an active role filter loads every user whose role contains the name and
+pages through the exact matches in the browser; without a role filter the table pages on the server
+as before.
 
 ### Custom layouts (composition)
 

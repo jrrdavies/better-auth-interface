@@ -144,24 +144,25 @@ export interface AuthClientShape {
   }
 }
 
+/** Query options of the admin plugin's list-users endpoint */
+export interface ListUsersQuery {
+  searchValue?: string | undefined
+  searchField?: "name" | "email" | undefined
+  searchOperator?: "contains" | "starts_with" | "ends_with" | undefined
+  limit?: number | undefined
+  offset?: number | undefined
+  sortBy?: string | undefined
+  sortDirection?: "asc" | "desc" | undefined
+  filterField?: string | undefined
+  filterValue?: string | number | boolean | undefined
+  filterOperator?: string | undefined
+}
+
 /** Admin client methods provided by the Better Auth admin plugin */
 export interface AdminClientShape {
   admin: {
     listUsers: (args?: {
-      query?:
-        | {
-            searchValue?: string | undefined
-            searchField?: "name" | "email" | undefined
-            searchOperator?: "contains" | "starts_with" | "ends_with" | undefined
-            limit?: number | undefined
-            offset?: number | undefined
-            sortBy?: string | undefined
-            sortDirection?: "asc" | "desc" | undefined
-            filterField?: string | undefined
-            filterValue?: string | number | boolean | undefined
-            filterOperator?: string | undefined
-          }
-        | undefined
+      query?: ListUsersQuery | undefined
     }) => Promise<BetterFetchResponse<{ users: UserWithRole[]; total: number }>>
     createUser: (data: {
       email: string

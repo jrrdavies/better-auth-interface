@@ -32,8 +32,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useAdminClient, useAuthClient } from "@/registry/lib/auth-provider"
-import { getErrorMessage, parseRoles } from "@/registry/lib/auth-utils"
-import type { UserWithRole } from "@/registry/lib/auth-types"
+import { getErrorMessage, listUsersWithRole, parseRoles } from "@/registry/lib/auth-utils"
+import type { ListUsersQuery, UserWithRole } from "@/registry/lib/auth-types"
 
 /** Row-level admin actions that can be offered per user. */
 export type UserAction = "edit" | "setRole" | "ban" | "setPassword" | "impersonate" | "delete"
@@ -102,10 +102,10 @@ export interface UserTableProps {
   /** Callback when a user row is clicked */
   onUserClick?: ((user: UserWithRole) => void) | undefined
   /**
-   * Roles offered in the role filter dropdown. When omitted or empty,
-   * the role filter is hidden entirely. The filter matches with `contains`, so a user with
-   * several roles is found under each of them; `admin` also matches `sysadmin` unless the
-   * server narrows it.
+   * Roles offered in the role filter dropdown. When omitted or empty, the role filter is hidden
+   * entirely. The filter matches whole roles, so a user with several roles is found under each of
+   * them. The server can only compare text, so an active role filter loads every user whose role
+   * contains the name and pages through the exact matches in the browser.
    */
   filterableRoles?: string[] | undefined
   /** Which user field the search box queries. Defaults to "email". */
@@ -195,23 +195,39 @@ export function UserTable({
     setError(null)
 
     const sortCol = sorting[0]
+    const query: ListUsersQuery = {
+      searchValue: search || undefined,
+      searchField: search ? searchField : undefined,
+      searchOperator: search ? "contains" : undefined,
+      sortBy: sortCol?.id,
+      sortDirection: sortCol?.desc ? "desc" : "asc",
+    }
+
+    // A role filter compares whole roles, which the server cannot do, so this page is cut here.
+    if (roleFilter !== "all") {
+      const { users: holders, error } = await listUsersWithRole(adminClient, roleFilter, query)
+      if (error) {
+        setError(getErrorMessage(error))
+        setLoading(false)
+        return
+      }
+      const matched = holders.filter(
+        (user) => banFilter === "all" || !!user.banned === (banFilter === "banned"),
+      )
+      setUsers(matched.slice(page * pageSize, (page + 1) * pageSize))
+      setTotal(matched.length)
+      setLoading(false)
+      return
+    }
+
     const result = await adminClient.admin.listUsers({
       query: {
+        ...query,
         limit: pageSize,
         offset: page * pageSize,
-        searchValue: search || undefined,
-        searchField: search ? searchField : undefined,
-        searchOperator: search ? "contains" : undefined,
-        sortBy: sortCol?.id,
-        sortDirection: sortCol?.desc ? "desc" : "asc",
-        filterField: roleFilter !== "all" ? "role" : banFilter !== "all" ? "banned" : undefined,
-        filterValue:
-          roleFilter !== "all"
-            ? roleFilter
-            : banFilter !== "all"
-              ? banFilter === "banned"
-              : undefined,
-        filterOperator: roleFilter !== "all" ? "contains" : banFilter !== "all" ? "eq" : undefined,
+        filterField: banFilter !== "all" ? "banned" : undefined,
+        filterValue: banFilter !== "all" ? banFilter === "banned" : undefined,
+        filterOperator: banFilter !== "all" ? "eq" : undefined,
       },
     })
 

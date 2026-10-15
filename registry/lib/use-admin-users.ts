@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { useAdminClient } from "@/registry/lib/auth-provider"
-import { getErrorMessage, parseRoles } from "@/registry/lib/auth-utils"
+import { getErrorMessage, listUsersWithRole, parseRoles } from "@/registry/lib/auth-utils"
 import type { UserWithRole } from "@/registry/lib/auth-types"
 
 /** Aggregate user counts for the dashboard stat cards. */
@@ -99,29 +99,10 @@ export function useAdminUsers(options?: UseAdminUsersOptions): UseAdminUsersResu
         },
       })
       const roles = parseRoles(adminRolesKey)
-      // Reads up to 100 users per admin role, which covers any realistic number of admins.
-      const admins = await Promise.all(
-        roles.map((role) =>
-          adminClient.admin.listUsers({
-            query: {
-              filterField: "role",
-              filterValue: role,
-              filterOperator: "contains",
-              limit: 100,
-              offset: 0,
-            },
-          }),
-        ),
-      )
+      const admins = await Promise.all(roles.map((role) => listUsersWithRole(adminClient, role)))
       if (cancelled) return
-      // `contains` also matches a role that only includes the name (`admin` in `sysadmin`) and a
-      // user can hold several admin roles, so check the roles exactly and count each user once.
-      const adminIds = new Set(
-        admins
-          .flatMap((result) => result.data?.users ?? [])
-          .filter((user) => parseRoles(user.role).some((role) => roles.includes(role)))
-          .map((user) => user.id),
-      )
+      // A user can hold several admin roles, so count each user once.
+      const adminIds = new Set(admins.flatMap((result) => result.users).map((user) => user.id))
       setStats({
         totalUsers: total.data?.total ?? 0,
         bannedUsers: banned.data?.total ?? 0,

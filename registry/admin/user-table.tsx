@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import type { ColumnDef, SortingState } from "@tanstack/react-table"
 import { ChevronDown, ChevronsUpDown, ChevronUp, MoreHorizontal } from "lucide-react"
@@ -32,8 +32,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useAdminClient, useAuthClient } from "@/registry/lib/auth-provider"
-import { getErrorMessage } from "@/registry/lib/auth-utils"
-import type { UserWithRole } from "@/registry/lib/auth-types"
+import { getErrorMessage, listUsersWithRole, parseRoles } from "@/registry/lib/auth-utils"
+import type { ListUsersQuery, UserWithRole } from "@/registry/lib/auth-types"
 
 /** Row-level admin actions that can be offered per user. */
 export type UserAction = "edit" | "setRole" | "ban" | "setPassword" | "impersonate" | "delete"
@@ -102,12 +102,19 @@ export interface UserTableProps {
   /** Callback when a user row is clicked */
   onUserClick?: ((user: UserWithRole) => void) | undefined
   /**
-   * Roles offered in the role filter dropdown. When omitted or empty,
-   * the role filter is hidden entirely.
+   * Roles offered in the role filter dropdown. When omitted or empty, the role filter is hidden
+   * entirely. The filter matches whole roles, so a user with several roles is found under each of
+   * them. The server can only compare text, so an active role filter loads every user whose role
+   * contains the name and pages through the exact matches in the browser.
    */
   filterableRoles?: string[] | undefined
   /** Which user field the search box queries. Defaults to "email". */
   searchField?: "name" | "email" | undefined
+  /**
+   * Roles that carry admin rights, highlighted in the role column; the counterpart of the
+   * `adminRoles` option of Better Auth's admin plugin. Defaults to `["admin"]`.
+   */
+  adminRoles?: string[] | undefined
   /**
    * Per-row gate deciding whether a given action is available for a user.
    * Return `false` to hide the action for that row. Defaults to allowing all.
@@ -149,6 +156,7 @@ export function UserTable({
   onUserClick,
   filterableRoles,
   searchField = "email",
+  adminRoles = ["admin"],
   canPerformAction,
   onEditUser,
   onSetRole,
@@ -182,30 +190,62 @@ export function UserTable({
     [canPerformAction],
   )
 
+  const latestRequest = useRef(0)
+  const roleMatches = useRef<{ key: string; users: UserWithRole[] } | null>(null)
+
   const fetchUsers = useCallback(async () => {
+    // A slower earlier request must not overwrite the result of a newer one.
+    const request = ++latestRequest.current
+    const isLatest = () => request === latestRequest.current
     setLoading(true)
     setError(null)
 
     const sortCol = sorting[0]
+    const query: ListUsersQuery = {
+      searchValue: search || undefined,
+      searchField: search ? searchField : undefined,
+      searchOperator: search ? "contains" : undefined,
+      sortBy: sortCol?.id,
+      sortDirection: sortCol?.desc ? "desc" : "asc",
+    }
+
+    /*
+     * A role filter compares whole roles, which the server cannot do, so the pages are cut here.
+     * Paging re-slices the matches already read; another role, search, sort or status reads again.
+     */
+    if (roleFilter !== "all") {
+      const key = JSON.stringify([roleFilter, banFilter, query])
+      let matched = roleMatches.current?.key === key ? roleMatches.current.users : null
+      if (!matched) {
+        const { users: holders, error } = await listUsersWithRole(adminClient, roleFilter, query)
+        if (!isLatest()) return
+        if (error) {
+          setError(getErrorMessage(error))
+          setLoading(false)
+          return
+        }
+        matched = holders.filter(
+          (user) => banFilter === "all" || !!user.banned === (banFilter === "banned"),
+        )
+        roleMatches.current = { key, users: matched }
+      }
+      setUsers(matched.slice(page * pageSize, (page + 1) * pageSize))
+      setTotal(matched.length)
+      setLoading(false)
+      return
+    }
+
     const result = await adminClient.admin.listUsers({
       query: {
+        ...query,
         limit: pageSize,
         offset: page * pageSize,
-        searchValue: search || undefined,
-        searchField: search ? searchField : undefined,
-        searchOperator: search ? "contains" : undefined,
-        sortBy: sortCol?.id,
-        sortDirection: sortCol?.desc ? "desc" : "asc",
-        filterField: roleFilter !== "all" ? "role" : banFilter !== "all" ? "banned" : undefined,
-        filterValue:
-          roleFilter !== "all"
-            ? roleFilter
-            : banFilter !== "all"
-              ? banFilter === "banned"
-              : undefined,
-        filterOperator: roleFilter !== "all" || banFilter !== "all" ? "eq" : undefined,
+        filterField: banFilter !== "all" ? "banned" : undefined,
+        filterValue: banFilter !== "all" ? banFilter === "banned" : undefined,
+        filterOperator: banFilter !== "all" ? "eq" : undefined,
       },
     })
+    if (!isLatest()) return
 
     if (result.error) {
       setError(getErrorMessage(result.error))
@@ -249,10 +289,15 @@ export function UserTable({
       id: "role",
       header: l.columnRole,
       accessorFn: (row) => row.role,
-      cell: ({ row }) => {
-        const role = row.original.role ?? "user"
-        return <Badge variant={role === "admin" ? "default" : "secondary"}>{role}</Badge>
-      },
+      cell: ({ row }) => (
+        <div className="flex flex-wrap gap-1">
+          {parseRoles(row.original.role ?? "user").map((role) => (
+            <Badge key={role} variant={adminRoles.includes(role) ? "default" : "secondary"}>
+              {role}
+            </Badge>
+          ))}
+        </div>
+      ),
     },
     {
       id: "banned",

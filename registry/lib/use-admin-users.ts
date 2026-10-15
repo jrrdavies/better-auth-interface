@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { useAdminClient } from "@/registry/lib/auth-provider"
-import { getErrorMessage } from "@/registry/lib/auth-utils"
+import { getErrorMessage, listUsersWithRole, parseRoles } from "@/registry/lib/auth-utils"
 import type { UserWithRole } from "@/registry/lib/auth-types"
 
 /** Aggregate user counts for the dashboard stat cards. */
@@ -14,8 +14,12 @@ export interface UserStats {
 
 /** Options for {@link useAdminUsers}. */
 export interface UseAdminUsersOptions {
-  /** Role counted in `stats.adminCount`. Defaults to `"admin"`. */
-  adminRole?: string | undefined
+  /**
+   * Roles that carry admin rights, the counterpart of the `adminRoles` option of Better Auth's
+   * admin plugin. A user holding any of them counts once in `stats.adminCount`.
+   * Defaults to `["admin"]`.
+   */
+  adminRoles?: string[] | undefined
   /** Whether to fetch the aggregate stats. Defaults to `true`. */
   fetchStats?: boolean | undefined
 }
@@ -26,7 +30,7 @@ export interface UseAdminUsersOptions {
  * sharing one refresh signal and the active-dialog state.
  *
  * @example
- * const admin = useAdminUsers({ adminRole: "admin" })
+ * const admin = useAdminUsers({ adminRoles: ["admin"] })
  * // <CreateUserDialog onSuccess={admin.refresh} /> anywhere (e.g. a page header)
  * // <UserTable key={admin.refreshKey} onEditUser={admin.setEditUser} ... />
  * // <EditUserDialog user={admin.editUser} onSuccess={() => { admin.setEditUser(null); admin.refresh() }} ... />
@@ -55,7 +59,9 @@ export interface UseAdminUsersResult {
 }
 
 export function useAdminUsers(options?: UseAdminUsersOptions): UseAdminUsersResult {
-  const { adminRole = "admin", fetchStats = true } = options ?? {}
+  const { adminRoles, fetchStats = true } = options ?? {}
+  // A joined key keeps the stats effect stable when the caller passes a new array every render.
+  const adminRolesKey = (adminRoles ?? ["admin"]).join(",")
   const adminClient = useAdminClient()
 
   const [refreshKey, setRefreshKey] = useState(0)
@@ -92,20 +98,20 @@ export function useAdminUsers(options?: UseAdminUsersOptions): UseAdminUsersResu
           offset: 0,
         },
       })
-      const admins = await adminClient.admin.listUsers({
-        query: {
-          filterField: "role",
-          filterValue: adminRole,
-          filterOperator: "eq",
-          limit: 1,
-          offset: 0,
-        },
-      })
+      const roles = parseRoles(adminRolesKey)
+      const admins = await Promise.all(roles.map((role) => listUsersWithRole(adminClient, role)))
       if (cancelled) return
+      const adminsError = admins.find((result) => result.error)?.error
+      if (adminsError) {
+        setStatsError(getErrorMessage(adminsError))
+        return
+      }
+      // A user can hold several admin roles, so count each user once.
+      const adminIds = new Set(admins.flatMap((result) => result.users).map((user) => user.id))
       setStats({
         totalUsers: total.data?.total ?? 0,
         bannedUsers: banned.data?.total ?? 0,
-        adminCount: admins.data?.total ?? 0,
+        adminCount: adminIds.size,
       })
     }
 
@@ -113,7 +119,7 @@ export function useAdminUsers(options?: UseAdminUsersOptions): UseAdminUsersResu
     return () => {
       cancelled = true
     }
-  }, [adminClient, adminRole, fetchStats, refreshKey])
+  }, [adminClient, adminRolesKey, fetchStats, refreshKey])
 
   return {
     refreshKey,

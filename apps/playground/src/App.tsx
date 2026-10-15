@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { AuthProvider } from "@/registry/lib/auth-provider"
+import { parseRoles } from "@/registry/lib/auth-utils"
 import { mockAuthClient, mockAdminClient } from "./lib/mock-auth-client"
 import type { UserWithRole } from "@/registry/lib/auth-types"
 
@@ -27,13 +28,15 @@ type AuthView =
   | "delete-account"
 type Lang = "en" | "nl"
 
+const ADMIN_ROLES = ["admin", "owner"]
+
 const NL_ADMIN_LABELS: AdminDashboardLabels = {
   totalUsers: "Totaal gebruikers",
   totalUsersDescription: "Geregistreerde accounts",
   bannedUsers: "Geblokkeerde gebruikers",
   bannedUsersDescription: "Momenteel geblokkeerd",
   admins: "Beheerders",
-  adminsDescription: "Gebruikers met de admin-rol",
+  adminsDescription: "Gebruikers met een admin-rol",
   notSignedIn: "Je moet als beheerder ingelogd zijn.",
   statsErrorTitle: "Statistieken laden mislukt",
 }
@@ -173,7 +176,7 @@ function App() {
   const [protectAdmins, setProtectAdmins] = useState(false)
 
   const canPerformAction = protectAdmins
-    ? (_action: UserAction, user: UserWithRole) => user.role !== "admin"
+    ? (_action: UserAction, user: UserWithRole) => !parseRoles(user.role).some((role) => ADMIN_ROLES.includes(role))
     : undefined
 
   return (
@@ -325,7 +328,8 @@ function App() {
               description={
                 lang === "nl" ? "Beheer gebruikers en rollen" : "Manage users and permissions"
               }
-              assignableRoles={["user", "admin", "moderator"]}
+              assignableRoles={["user", "admin", "owner", "moderator"]}
+              adminRoles={ADMIN_ROLES}
               searchField="email"
               canPerformAction={canPerformAction}
               labels={lang === "nl" ? NL_ADMIN_LABELS : undefined}

@@ -268,7 +268,7 @@
       "name": "create-user-dialog",
       "type": "registry:component",
       "title": "Create User Dialog",
-      "description": "Admin dialog for creating a new user with name, email, password, and role.",
+      "description": "Admin dialog for creating a new user with name, email, password, and roles.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
       "registryDependencies": [
         "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
@@ -278,7 +278,7 @@
         "input",
         "label",
         "dialog",
-        "select"
+        "checkbox"
       ],
       "files": [
         {
@@ -291,7 +291,7 @@
       "name": "edit-user-dialog",
       "type": "registry:component",
       "title": "Edit User Dialog",
-      "description": "Admin dialog for editing user name, email, and role.",
+      "description": "Admin dialog for editing user name, email, and roles.",
       "dependencies": ["react-hook-form", "zod", "@hookform/resolvers"],
       "registryDependencies": [
         "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
@@ -301,7 +301,7 @@
         "input",
         "label",
         "dialog",
-        "select"
+        "checkbox"
       ],
       "files": [
         {
@@ -338,7 +338,7 @@
       "name": "set-role-dialog",
       "type": "registry:component",
       "title": "Set Role Dialog",
-      "description": "Admin dialog for changing a user's role.",
+      "description": "Admin dialog for changing a user's roles.",
       "dependencies": [],
       "registryDependencies": [
         "https://jrrdavies.github.io/better-auth-interface/r/auth-provider.json",
@@ -347,7 +347,7 @@
         "button",
         "label",
         "dialog",
-        "select"
+        "checkbox"
       ],
       "files": [
         {

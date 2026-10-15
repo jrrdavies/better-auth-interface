@@ -86,8 +86,9 @@ source:
   an admin from managing other admins). `action` is one of
   `"edit" | "setRole" | "ban" | "setPassword" | "impersonate" | "delete"`.
 - **`searchField`** — `"email"` (default) or `"name"`.
-- **`adminRole`** / **`showStats`** — which role is counted in the "Admins" stat card, and whether the
-  stat cards render.
+- **`adminRoles`** / **`showStats`** — the roles that carry admin rights (default `["admin"]`), and
+  whether the stat cards render. Pass the same list as the `adminRoles` option of Better Auth's admin
+  plugin: these roles are counted in the "Admins" stat card and highlighted in the table.
 - **`labels`** / **`tableLabels`** / **`dialogLabels`** — override any UI string for i18n or custom
   copy (dashboard chrome, table, and the action dialogs respectively).
 
@@ -95,13 +96,29 @@ source:
 <AdminDashboard
   assignableRoles={["user", "admin"]}
   searchField="name"
-  canPerformAction={(_action, user) => currentUser.role === "super-admin" || user.role !== "admin"}
+  canPerformAction={(_action, user) =>
+    parseRoles(currentUser.role).includes("owner") || !parseRoles(user.role).includes("admin")
+  }
   tableLabels={{ searchPlaceholder: "Zoeken...", edit: "Bewerken" }}
   dialogLabels={{ createUser: { triggerText: "Gebruiker aanmaken" } }}
 />
 ```
 
 Auth forms (sign-in, sign-up, etc.) accept the same `labels` prop for full i18n.
+
+### Multiple roles
+
+A user can hold several roles. The create, edit and set-role dialogs offer `assignableRoles` as
+checkboxes and send the selection as an array; Better Auth (1.3.8 or later) stores it as one
+comma-separated string such as `"editor,viewer"`, and its permission checks grant access when any
+of the roles does. Use `parseRoles` from `auth-utils` to split that string, as in the
+`canPerformAction` example above.
+
+The table's role filter and the "Admins" stat card compare whole roles, so a user is found under
+each of their roles and filtering on `admin` does not list a `sysadmin`. Better Auth's list endpoint
+can only compare text, so an active role filter loads every user whose role contains the name and
+pages through the exact matches in the browser; without a role filter the table pages on the server
+as before.
 
 ### Custom layouts (composition)
 
@@ -116,7 +133,7 @@ import { CreateUserDialog } from "@/components/create-user-dialog"
 import { EditUserDialog } from "@/components/edit-user-dialog"
 
 function UsersPage() {
-  const admin = useAdminUsers({ adminRole: "admin" })
+  const admin = useAdminUsers({ adminRoles: ["admin"] })
 
   return (
     <>
@@ -163,7 +180,7 @@ function UsersPage() {
 | `create-user-dialog`    | Admin create user form                        | Admin           |
 | `edit-user-dialog`      | Admin edit user form                          | Admin           |
 | `ban-user-dialog`       | Ban/unban user with reason and expiry         | Admin           |
-| `set-role-dialog`       | Change user role                              | Admin           |
+| `set-role-dialog`       | Change user roles                             | Admin           |
 | `delete-user-dialog`    | Admin delete user with confirmation           | Admin           |
 | `set-password-dialog`   | Admin set user password                       | Admin           |
 | `impersonate-button`    | Start/stop user impersonation                 | Admin           |

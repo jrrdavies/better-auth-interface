@@ -45,7 +45,7 @@ const mockUsers: UserWithRole[] = [
     image: "https://api.dicebear.com/9.x/avataaars/svg?seed=diana",
     createdAt: new Date("2024-02-01"),
     updatedAt: new Date("2024-04-20"),
-    role: "admin",
+    role: "admin,owner",
     banned: false,
   },
   {
@@ -56,7 +56,7 @@ const mockUsers: UserWithRole[] = [
     image: "https://api.dicebear.com/9.x/avataaars/svg?seed=eve",
     createdAt: new Date("2024-07-05"),
     updatedAt: new Date("2024-07-05"),
-    role: "user",
+    role: "user,moderator",
     banned: false,
   },
 ]
@@ -65,6 +65,8 @@ const displayOrder = ["4", "3", "1", "5", "2"]
 mockUsers.sort((a, b) => displayOrder.indexOf(a.id) - displayOrder.indexOf(b.id))
 
 const ok = <T>(data: T) => ({ data, error: null })
+// Better Auth stores several roles as one comma-separated string.
+const joinRoles = (role: string | string[]) => (Array.isArray(role) ? role.join(",") : role)
 const err = (message: string, status = 400) => ({
   data: null,
   error: { message, status, statusText: "Error" },
@@ -163,7 +165,10 @@ export const mockAdminClient: AdminClientShape = {
         )
       }
       if (query?.filterField === "role" && query.filterValue) {
-        filtered = filtered.filter((u) => u.role === query.filterValue)
+        const value = String(query.filterValue)
+        filtered = filtered.filter((u) =>
+          query.filterOperator === "contains" ? (u.role ?? "").includes(value) : u.role === value,
+        )
       }
       if (query?.filterField === "banned") {
         filtered = filtered.filter((u) => !!u.banned === !!query.filterValue)
@@ -197,7 +202,7 @@ export const mockAdminClient: AdminClientShape = {
         image: null,
         createdAt: new Date(),
         updatedAt: new Date(),
-        role: role ?? "user",
+        role: role ? joinRoles(role) : "user",
         banned: false,
       }
       mockUsers.push(user)
@@ -207,7 +212,8 @@ export const mockAdminClient: AdminClientShape = {
       await delay(800)
       const user = mockUsers.find((u) => u.id === userId)
       if (!user) return err("User not found", 404)
-      Object.assign(user, data, { updatedAt: new Date() })
+      const role = Array.isArray(data.role) ? { role: joinRoles(data.role as string[]) } : {}
+      Object.assign(user, data, role, { updatedAt: new Date() })
       return ok({ user })
     },
     removeUser: async ({ userId }) => {
@@ -237,7 +243,7 @@ export const mockAdminClient: AdminClientShape = {
       await delay(800)
       const user = mockUsers.find((u) => u.id === userId)
       if (!user) return err("User not found", 404)
-      user.role = role
+      user.role = joinRoles(role)
       return ok({ user })
     },
     setUserPassword: async ({ userId }) => {

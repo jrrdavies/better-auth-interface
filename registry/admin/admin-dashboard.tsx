@@ -54,7 +54,7 @@ const DEFAULT_LABELS: Required<AdminDashboardLabels> = {
   bannedUsers: "Banned Users",
   bannedUsersDescription: "Currently banned",
   admins: "Admins",
-  adminsDescription: "Users with the admin role",
+  adminsDescription: "Users with an admin role",
   notSignedIn: "You must be signed in as an admin to access this dashboard.",
   statsErrorTitle: "Failed to load stats",
 }
@@ -88,8 +88,12 @@ export interface AdminDashboardProps {
   canPerformAction?: ((action: UserAction, user: UserWithRole) => boolean) | undefined
   /** Which user field the search box queries. Defaults to "email". */
   searchField?: "name" | "email" | undefined
-  /** Role counted in the "Admins" stat card. Defaults to "admin". */
-  adminRole?: string | undefined
+  /**
+   * Roles that carry admin rights: counted in the "Admins" stat card and highlighted in the table.
+   * The counterpart of the `adminRoles` option of Better Auth's admin plugin. Defaults to
+   * `["admin"]`.
+   */
+  adminRoles?: string[] | undefined
   /** Whether to render the stats cards. Defaults to true. */
   showStats?: boolean | undefined
   /** Custom trigger for the create-user dialog. */
@@ -115,7 +119,7 @@ export function AdminDashboard({
   filterableRoles,
   canPerformAction,
   searchField = "email",
-  adminRole = "admin",
+  adminRoles = ["admin"],
   showStats = true,
   createUserTrigger,
   labels,
@@ -145,7 +149,7 @@ export function AdminDashboard({
     setPasswordUser,
     impersonateUser,
     setImpersonateUser,
-  } = useAdminUsers({ adminRole, fetchStats: showStats })
+  } = useAdminUsers({ adminRoles, fetchStats: showStats })
 
   if (!session.data && !session.isPending) {
     return (
@@ -237,6 +241,7 @@ export function AdminDashboard({
         key={refreshKey}
         filterableRoles={roleFilterOptions}
         searchField={searchField}
+        adminRoles={adminRoles}
         canPerformAction={canPerformAction}
         labels={tableLabels}
         onEditUser={setEditUser}

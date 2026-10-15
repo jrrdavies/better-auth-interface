@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -17,15 +18,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { useAdminClient } from "@/registry/lib/auth-provider"
-import { getErrorMessage, isNetworkError } from "@/registry/lib/auth-utils"
+import { getErrorMessage, isNetworkError, parseRoles } from "@/registry/lib/auth-utils"
 import type { UserWithRole } from "@/registry/lib/auth-types"
 
 /** Overridable UI strings for i18n / custom copy. */
@@ -52,14 +46,14 @@ const DEFAULT_LABELS: Required<EditUserDialogLabels> = {
   description: (user) => `Update user details for ${user.name}.`,
   nameLabel: "Name",
   emailLabel: "Email",
-  roleLabel: "Role",
+  roleLabel: "Roles",
   cancel: "Cancel",
   submit: "Save changes",
   submitting: "Saving...",
   nameRequired: "Name is required",
   emailRequired: "Email is required",
   emailInvalid: "Please enter a valid email address",
-  roleRequired: "Role is required",
+  roleRequired: "Select at least one role",
   networkError: "Unable to connect. Please try again.",
 }
 
@@ -71,7 +65,7 @@ export interface EditUserDialogProps {
   trigger?: ReactNode | undefined
   /** Callback fired after successful user update */
   onSuccess?: ((user: UserWithRole) => void) | undefined
-  /** Available roles for the role select */
+  /** Roles offered as checkboxes; a user can be given several */
   roles?: string[] | undefined
   /** Controlled open state */
   open?: boolean | undefined
@@ -82,7 +76,7 @@ export interface EditUserDialogProps {
 }
 
 /**
- * Admin dialog for editing an existing user's name, email, and role.
+ * Admin dialog for editing an existing user's name, email, and roles.
  */
 export function EditUserDialog({
   user,
@@ -104,7 +98,7 @@ export function EditUserDialog({
       z.object({
         name: z.string().min(1, l.nameRequired),
         email: z.string().min(1, l.emailRequired).email(l.emailInvalid),
-        role: z.string().min(1, l.roleRequired),
+        role: z.array(z.string()).min(1, l.roleRequired),
       }),
     [l],
   )
@@ -120,14 +114,14 @@ export function EditUserDialog({
     formState: { errors, isSubmitting },
   } = useForm<EditUserFormValues>({
     resolver: zodResolver(editUserSchema),
-    defaultValues: { name: user.name, email: user.email, role: user.role ?? "user" },
+    defaultValues: { name: user.name, email: user.email, role: parseRoles(user.role ?? "user") },
   })
 
-  const selectedRole = watch("role")
+  const selectedRoles = watch("role")
 
   useEffect(() => {
     if (isOpen) {
-      reset({ name: user.name, email: user.email, role: user.role ?? "user" })
+      reset({ name: user.name, email: user.email, role: parseRoles(user.role ?? "user") })
     }
   }, [isOpen, user, reset])
 
@@ -219,23 +213,43 @@ export function EditUserDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-user-role">{l.roleLabel}</Label>
-              <Select
-                value={selectedRole}
-                onValueChange={(value) => setValue("role", value)}
-                disabled={isSubmitting}
+              <Label id="edit-user-role-label">{l.roleLabel}</Label>
+              <div
+                role="group"
+                aria-labelledby="edit-user-role-label"
+                aria-describedby={errors.role ? "edit-user-role-error" : undefined}
+                className="space-y-2"
               >
-                <SelectTrigger id="edit-user-role">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {roles.map((role) => (
-                    <SelectItem key={role} value={role}>
+                {roles.map((role) => (
+                  <div key={role} className="flex items-center gap-2">
+                    <Checkbox
+                      id={`edit-user-role-${role}`}
+                      checked={selectedRoles.includes(role)}
+                      onCheckedChange={(checked) =>
+                        setValue(
+                          "role",
+                          checked === true
+                            ? [...selectedRoles, role]
+                            : selectedRoles.filter((r) => r !== role),
+                          { shouldValidate: true },
+                        )
+                      }
+                      disabled={isSubmitting}
+                    />
+                    <Label
+                      htmlFor={`edit-user-role-${role}`}
+                      className="cursor-pointer text-sm font-normal"
+                    >
                       {role}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                    </Label>
+                  </div>
+                ))}
+              </div>
+              {errors.role && (
+                <p id="edit-user-role-error" className="text-destructive text-sm">
+                  {errors.role.message}
+                </p>
+              )}
             </div>
           </div>
 

@@ -23,7 +23,7 @@ export interface User {
 
 /** User with admin-plugin fields (role, ban status) */
 export interface UserWithRole extends User {
-  /** User role (e.g. "user", "admin") */
+  /** User role, or several comma-separated roles (e.g. "user", "editor,viewer") */
   role?: string | undefined
   /** Whether the user is currently banned */
   banned?: boolean | null | undefined
@@ -167,7 +167,7 @@ export interface AdminClientShape {
       email: string
       name: string
       password?: string | undefined
-      role?: string | undefined
+      role?: string | string[] | undefined
       data?: Record<string, unknown> | undefined
     }) => Promise<BetterFetchResponse<{ user: UserWithRole }>>
     updateUser: (data: {
@@ -183,7 +183,7 @@ export interface AdminClientShape {
     unbanUser: (data: { userId: string }) => Promise<BetterFetchResponse<{ user: UserWithRole }>>
     setRole: (data: {
       userId: string
-      role: string
+      role: string | string[]
     }) => Promise<BetterFetchResponse<{ user: UserWithRole }>>
     setUserPassword: (data: {
       userId: string

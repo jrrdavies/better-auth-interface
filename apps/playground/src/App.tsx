@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { AuthProvider } from "@/registry/lib/auth-provider"
+import { parseRoles } from "@/registry/lib/auth-utils"
 import { mockAuthClient, mockAdminClient } from "./lib/mock-auth-client"
 import type { UserWithRole } from "@/registry/lib/auth-types"
 
@@ -173,7 +174,7 @@ function App() {
   const [protectAdmins, setProtectAdmins] = useState(false)
 
   const canPerformAction = protectAdmins
-    ? (_action: UserAction, user: UserWithRole) => user.role !== "admin"
+    ? (_action: UserAction, user: UserWithRole) => !parseRoles(user.role).includes("admin")
     : undefined
 
   return (

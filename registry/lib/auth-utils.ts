@@ -24,3 +24,14 @@ export function isNetworkError(error: BetterFetchError | null | undefined): bool
   if (!error) return false
   return error.status === 0 || error.status >= 500
 }
+
+/**
+ * Split a user's role field into its separate roles. Better Auth stores multiple roles as one
+ * comma-separated string (e.g. `"editor,viewer"`).
+ */
+export function parseRoles(role: string | null | undefined): string[] {
+  return (role ?? "")
+    .split(",")
+    .map((r) => r.trim())
+    .filter(Boolean)
+}

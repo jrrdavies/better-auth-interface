@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react"
 import type { ReactNode } from "react"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import {
   Dialog,
@@ -13,15 +14,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { useAdminClient } from "@/registry/lib/auth-provider"
-import { getErrorMessage, isNetworkError } from "@/registry/lib/auth-utils"
+import { getErrorMessage, isNetworkError, parseRoles } from "@/registry/lib/auth-utils"
 import type { UserWithRole } from "@/registry/lib/auth-types"
 
 /** Overridable UI strings for i18n / custom copy. */
@@ -40,7 +34,7 @@ const DEFAULT_LABELS: Required<SetRoleDialogLabels> = {
   triggerText: "Set Role",
   title: "Set role",
   description: (user) => `Change the role for ${user.name} (${user.email}).`,
-  roleLabel: "Role",
+  roleLabel: "Roles",
   cancel: "Cancel",
   submit: "Save role",
   submitting: "Saving...",
@@ -53,7 +47,7 @@ export interface SetRoleDialogProps {
   user: UserWithRole
   /** Custom trigger element */
   trigger?: ReactNode | undefined
-  /** Available roles */
+  /** Roles offered as checkboxes; a user can be given several */
   availableRoles?: string[] | undefined
   /** Callback fired after successful role change */
   onSuccess?: (() => void) | undefined
@@ -66,7 +60,7 @@ export interface SetRoleDialogProps {
 }
 
 /**
- * Admin dialog for changing a user's role.
+ * Admin dialog for changing a user's roles.
  */
 export function SetRoleDialog({
   user,
@@ -81,7 +75,7 @@ export function SetRoleDialog({
   const l = useMemo(() => ({ ...DEFAULT_LABELS, ...labels }), [labels])
   const [internalOpen, setInternalOpen] = useState(false)
   const isOpen = openProp ?? internalOpen
-  const [role, setRole] = useState(user.role ?? "user")
+  const [roles, setRoles] = useState(() => parseRoles(user.role ?? "user"))
   const [serverError, setServerError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
@@ -91,7 +85,7 @@ export function SetRoleDialog({
 
     const result = await adminClient.admin.setRole({
       userId: user.id,
-      role,
+      role: roles,
     })
 
     if (result.error) {
@@ -111,7 +105,7 @@ export function SetRoleDialog({
     setInternalOpen(nextOpen)
     onOpenChange?.(nextOpen)
     if (nextOpen) {
-      setRole(user.role ?? "user")
+      setRoles(parseRoles(user.role ?? "user"))
     }
     if (!nextOpen) {
       setServerError(null)
@@ -142,19 +136,24 @@ export function SetRoleDialog({
         )}
 
         <div className="space-y-2 py-4">
-          <Label htmlFor="set-role-select">{l.roleLabel}</Label>
-          <Select value={role} onValueChange={setRole} disabled={saving}>
-            <SelectTrigger id="set-role-select">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {availableRoles.map((r) => (
-                <SelectItem key={r} value={r}>
+          <Label id="set-role-label">{l.roleLabel}</Label>
+          <div role="group" aria-labelledby="set-role-label" className="space-y-2">
+            {availableRoles.map((r) => (
+              <div key={r} className="flex items-center gap-2">
+                <Checkbox
+                  id={`set-role-${r}`}
+                  checked={roles.includes(r)}
+                  onCheckedChange={(checked) =>
+                    setRoles(checked === true ? [...roles, r] : roles.filter((x) => x !== r))
+                  }
+                  disabled={saving}
+                />
+                <Label htmlFor={`set-role-${r}`} className="cursor-pointer text-sm font-normal">
                   {r}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+                </Label>
+              </div>
+            ))}
+          </div>
         </div>
 
         <DialogFooter>
@@ -169,7 +168,7 @@ export function SetRoleDialog({
           <Button
             type="button"
             onClick={() => void handleSave()}
-            disabled={saving}
+            disabled={saving || roles.length === 0}
             aria-busy={saving}
           >
             {saving ? l.submitting : l.submit}

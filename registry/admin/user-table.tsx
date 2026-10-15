@@ -32,7 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useAdminClient, useAuthClient } from "@/registry/lib/auth-provider"
-import { getErrorMessage } from "@/registry/lib/auth-utils"
+import { getErrorMessage, parseRoles } from "@/registry/lib/auth-utils"
 import type { UserWithRole } from "@/registry/lib/auth-types"
 
 /** Row-level admin actions that can be offered per user. */
@@ -103,7 +103,9 @@ export interface UserTableProps {
   onUserClick?: ((user: UserWithRole) => void) | undefined
   /**
    * Roles offered in the role filter dropdown. When omitted or empty,
-   * the role filter is hidden entirely.
+   * the role filter is hidden entirely. The filter matches with `contains`, so a user with
+   * several roles is found under each of them; `admin` also matches `super-admin` unless the
+   * server narrows it.
    */
   filterableRoles?: string[] | undefined
   /** Which user field the search box queries. Defaults to "email". */
@@ -203,7 +205,7 @@ export function UserTable({
             : banFilter !== "all"
               ? banFilter === "banned"
               : undefined,
-        filterOperator: roleFilter !== "all" || banFilter !== "all" ? "eq" : undefined,
+        filterOperator: roleFilter !== "all" ? "contains" : banFilter !== "all" ? "eq" : undefined,
       },
     })
 
@@ -249,10 +251,15 @@ export function UserTable({
       id: "role",
       header: l.columnRole,
       accessorFn: (row) => row.role,
-      cell: ({ row }) => {
-        const role = row.original.role ?? "user"
-        return <Badge variant={role === "admin" ? "default" : "secondary"}>{role}</Badge>
-      },
+      cell: ({ row }) => (
+        <div className="flex flex-wrap gap-1">
+          {parseRoles(row.original.role ?? "user").map((role) => (
+            <Badge key={role} variant={role === "admin" ? "default" : "secondary"}>
+              {role}
+            </Badge>
+          ))}
+        </div>
+      ),
     },
     {
       id: "banned",

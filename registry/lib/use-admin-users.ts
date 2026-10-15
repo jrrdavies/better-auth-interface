@@ -14,7 +14,10 @@ export interface UserStats {
 
 /** Options for {@link useAdminUsers}. */
 export interface UseAdminUsersOptions {
-  /** Role counted in `stats.adminCount`. Defaults to `"admin"`. */
+  /**
+   * Role counted in `stats.adminCount`, matched with `contains` so users holding it next to other
+   * roles count too. Defaults to `"admin"`.
+   */
   adminRole?: string | undefined
   /** Whether to fetch the aggregate stats. Defaults to `true`. */
   fetchStats?: boolean | undefined
@@ -96,7 +99,7 @@ export function useAdminUsers(options?: UseAdminUsersOptions): UseAdminUsersResu
         query: {
           filterField: "role",
           filterValue: adminRole,
-          filterOperator: "eq",
+          filterOperator: "contains",
           limit: 1,
           offset: 0,
         },

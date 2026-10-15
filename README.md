@@ -95,13 +95,28 @@ source:
 <AdminDashboard
   assignableRoles={["user", "admin"]}
   searchField="name"
-  canPerformAction={(_action, user) => currentUser.role === "super-admin" || user.role !== "admin"}
+  canPerformAction={(_action, user) =>
+    parseRoles(currentUser.role).includes("super-admin") || !parseRoles(user.role).includes("admin")
+  }
   tableLabels={{ searchPlaceholder: "Zoeken...", edit: "Bewerken" }}
   dialogLabels={{ createUser: { triggerText: "Gebruiker aanmaken" } }}
 />
 ```
 
 Auth forms (sign-in, sign-up, etc.) accept the same `labels` prop for full i18n.
+
+### Multiple roles
+
+A user can hold several roles. The create, edit and set-role dialogs offer `assignableRoles` as
+checkboxes and send the selection as an array; Better Auth (1.3 or later) stores it as one
+comma-separated string such as `"editor,viewer"`, and its permission checks grant access when any
+of the roles does. Use `parseRoles` from `auth-utils` to split that string, as in the
+`canPerformAction` example above.
+
+The table's role filter and the "Admins" stat card match with `contains`, so a user is found under
+each of their roles. A role name that is part of another one matches both: filtering on `admin`
+also lists `super-admin` users. Narrow that on the server (a `before` hook on `/admin/list-users`)
+if your roles overlap like that.
 
 ### Custom layouts (composition)
 
@@ -163,7 +178,7 @@ function UsersPage() {
 | `create-user-dialog`    | Admin create user form                        | Admin           |
 | `edit-user-dialog`      | Admin edit user form                          | Admin           |
 | `ban-user-dialog`       | Ban/unban user with reason and expiry         | Admin           |
-| `set-role-dialog`       | Change user role                              | Admin           |
+| `set-role-dialog`       | Change user roles                             | Admin           |
 | `delete-user-dialog`    | Admin delete user with confirmation           | Admin           |
 | `set-password-dialog`   | Admin set user password                       | Admin           |
 | `impersonate-button`    | Start/stop user impersonation                 | Admin           |

@@ -35,29 +35,35 @@ export function isNetworkError(error: BetterFetchError | null | undefined): bool
  * comma-separated string (e.g. `"editor,viewer"`).
  */
 export function parseRoles(role: string | null | undefined): string[] {
-  return (role ?? "")
+  const roles = (role ?? "")
     .split(",")
     .map((r) => r.trim())
     .filter(Boolean)
+  return [...new Set(roles)]
 }
 
 /**
  * Every user who holds `role`, with the rest of `query` (search, sorting) applied. Better Auth's
  * list filter can only compare text, so `contains` also returns users whose role only includes the
  * name (`admin` in `sysadmin`); this reads all candidates in batches and keeps the exact matches.
+ * The batches are read in `id` order, the one order that stays the same from one batch to the
+ * next, and the requested sort is applied afterwards.
  */
 export async function listUsersWithRole(
   adminClient: AdminClientShape,
   role: string,
   query?: ListUsersQuery,
 ): Promise<{ users: UserWithRole[]; error: BetterFetchError | null }> {
+  const { sortBy, sortDirection, ...rest } = query ?? {}
   const users: UserWithRole[] = []
   let offset = 0
   let candidates = Infinity
   while (offset < candidates) {
     const result = await adminClient.admin.listUsers({
       query: {
-        ...query,
+        ...rest,
+        sortBy: "id",
+        sortDirection: "asc",
         filterField: "role",
         filterValue: role,
         filterOperator: "contains",
@@ -72,5 +78,19 @@ export async function listUsersWithRole(
     candidates = result.data?.total ?? 0
     offset += batch.length
   }
+  if (sortBy) {
+    const direction = sortDirection === "desc" ? -1 : 1
+    const field = (user: UserWithRole) => (user as unknown as Record<string, unknown>)[sortBy]
+    users.sort((a, b) => direction * compareValues(field(a), field(b)))
+  }
   return { users, error: null }
+}
+
+/** Order two values of one user field, with empty values last as a database sorts ascending. */
+function compareValues(a: unknown, b: unknown): number {
+  if (a == null || b == null) return a == null ? (b == null ? 0 : 1) : -1
+  if (a instanceof Date && b instanceof Date) return a.getTime() - b.getTime()
+  if (typeof a === "number" && typeof b === "number") return a - b
+  if (typeof a === "boolean" && typeof b === "boolean") return Number(a) - Number(b)
+  return String(a).localeCompare(String(b))
 }

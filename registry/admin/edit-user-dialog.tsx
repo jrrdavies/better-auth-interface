@@ -65,7 +65,10 @@ export interface EditUserDialogProps {
   trigger?: ReactNode | undefined
   /** Callback fired after successful user update */
   onSuccess?: ((user: UserWithRole) => void) | undefined
-  /** Roles offered as checkboxes; a user can be given several */
+  /**
+   * Roles offered as checkboxes; a user can be given several. Roles the user already holds are
+   * listed as well, so one that is not offered can still be seen and removed.
+   */
   roles?: string[] | undefined
   /** Controlled open state */
   open?: boolean | undefined
@@ -118,6 +121,7 @@ export function EditUserDialog({
   })
 
   const selectedRoles = watch("role")
+  const roleOptions = [...new Set([...roles, ...parseRoles(user.role)])]
 
   useEffect(() => {
     if (isOpen) {
@@ -220,7 +224,7 @@ export function EditUserDialog({
                 aria-describedby={errors.role ? "edit-user-role-error" : undefined}
                 className="space-y-2"
               >
-                {roles.map((role) => (
+                {roleOptions.map((role) => (
                   <div key={role} className="flex items-center gap-2">
                     <Checkbox
                       id={`edit-user-role-${role}`}

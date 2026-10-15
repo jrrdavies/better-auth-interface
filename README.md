@@ -109,7 +109,7 @@ Auth forms (sign-in, sign-up, etc.) accept the same `labels` prop for full i18n.
 ### Multiple roles
 
 A user can hold several roles. The create, edit and set-role dialogs offer `assignableRoles` as
-checkboxes and send the selection as an array; Better Auth (1.3 or later) stores it as one
+checkboxes and send the selection as an array; Better Auth (1.3.8 or later) stores it as one
 comma-separated string such as `"editor,viewer"`, and its permission checks grant access when any
 of the roles does. Use `parseRoles` from `auth-utils` to split that string, as in the
 `canPerformAction` example above.

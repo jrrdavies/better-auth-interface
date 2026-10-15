@@ -47,7 +47,10 @@ export interface SetRoleDialogProps {
   user: UserWithRole
   /** Custom trigger element */
   trigger?: ReactNode | undefined
-  /** Roles offered as checkboxes; a user can be given several */
+  /**
+   * Roles offered as checkboxes; a user can be given several. Roles the user already holds are
+   * listed as well, so one that is not offered can still be seen and removed.
+   */
   availableRoles?: string[] | undefined
   /** Callback fired after successful role change */
   onSuccess?: (() => void) | undefined
@@ -76,6 +79,7 @@ export function SetRoleDialog({
   const [internalOpen, setInternalOpen] = useState(false)
   const isOpen = openProp ?? internalOpen
   const [roles, setRoles] = useState(() => parseRoles(user.role ?? "user"))
+  const roleOptions = [...new Set([...availableRoles, ...parseRoles(user.role)])]
   const [serverError, setServerError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
@@ -138,7 +142,7 @@ export function SetRoleDialog({
         <div className="space-y-2 py-4">
           <Label id="set-role-label">{l.roleLabel}</Label>
           <div role="group" aria-labelledby="set-role-label" className="space-y-2">
-            {availableRoles.map((r) => (
+            {roleOptions.map((r) => (
               <div key={r} className="flex items-center gap-2">
                 <Checkbox
                   id={`set-role-${r}`}

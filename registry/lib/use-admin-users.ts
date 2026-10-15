@@ -101,6 +101,11 @@ export function useAdminUsers(options?: UseAdminUsersOptions): UseAdminUsersResu
       const roles = parseRoles(adminRolesKey)
       const admins = await Promise.all(roles.map((role) => listUsersWithRole(adminClient, role)))
       if (cancelled) return
+      const adminsError = admins.find((result) => result.error)?.error
+      if (adminsError) {
+        setStatsError(getErrorMessage(adminsError))
+        return
+      }
       // A user can hold several admin roles, so count each user once.
       const adminIds = new Set(admins.flatMap((result) => result.users).map((user) => user.id))
       setStats({

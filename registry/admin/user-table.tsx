@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import type { ColumnDef, SortingState } from "@tanstack/react-table"
 import { ChevronDown, ChevronsUpDown, ChevronUp, MoreHorizontal } from "lucide-react"
@@ -190,7 +190,13 @@ export function UserTable({
     [canPerformAction],
   )
 
+  const latestRequest = useRef(0)
+  const roleMatches = useRef<{ key: string; users: UserWithRole[] } | null>(null)
+
   const fetchUsers = useCallback(async () => {
+    // A slower earlier request must not overwrite the result of a newer one.
+    const request = ++latestRequest.current
+    const isLatest = () => request === latestRequest.current
     setLoading(true)
     setError(null)
 
@@ -203,17 +209,26 @@ export function UserTable({
       sortDirection: sortCol?.desc ? "desc" : "asc",
     }
 
-    // A role filter compares whole roles, which the server cannot do, so this page is cut here.
+    /*
+     * A role filter compares whole roles, which the server cannot do, so the pages are cut here.
+     * Paging re-slices the matches already read; another role, search, sort or status reads again.
+     */
     if (roleFilter !== "all") {
-      const { users: holders, error } = await listUsersWithRole(adminClient, roleFilter, query)
-      if (error) {
-        setError(getErrorMessage(error))
-        setLoading(false)
-        return
+      const key = JSON.stringify([roleFilter, banFilter, query])
+      let matched = roleMatches.current?.key === key ? roleMatches.current.users : null
+      if (!matched) {
+        const { users: holders, error } = await listUsersWithRole(adminClient, roleFilter, query)
+        if (!isLatest()) return
+        if (error) {
+          setError(getErrorMessage(error))
+          setLoading(false)
+          return
+        }
+        matched = holders.filter(
+          (user) => banFilter === "all" || !!user.banned === (banFilter === "banned"),
+        )
+        roleMatches.current = { key, users: matched }
       }
-      const matched = holders.filter(
-        (user) => banFilter === "all" || !!user.banned === (banFilter === "banned"),
-      )
       setUsers(matched.slice(page * pageSize, (page + 1) * pageSize))
       setTotal(matched.length)
       setLoading(false)
@@ -230,6 +245,7 @@ export function UserTable({
         filterOperator: banFilter !== "all" ? "eq" : undefined,
       },
     })
+    if (!isLatest()) return
 
     if (result.error) {
       setError(getErrorMessage(result.error))
